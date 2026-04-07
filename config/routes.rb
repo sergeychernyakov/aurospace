@@ -27,4 +27,6 @@ Rails.application.routes.draw do
   namespace :webhooks do
     post :yookassa, to: 'yookassa#create'
   end
+
+  root to: redirect(ENV.fetch('FRONTEND_URL', 'http://localhost:5173'))
 end

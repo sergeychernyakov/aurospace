@@ -1,13 +1,10 @@
 name: CI
 
-# DISABLED: no GitHub Actions budget. Use bin/ci locally.
-# To re-enable: uncomment push/pull_request, comment workflow_dispatch.
-# on:
-#   push:
-#     branches: [main]
-#   pull_request:
-#     branches: [main]
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

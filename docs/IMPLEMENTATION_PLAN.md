@@ -7,10 +7,14 @@
 | 1 | DONE | Rails scaffold, configs, quality infra | #3 |
 | 2-5 | DONE | Models, ledger service, create/cancel | #5 |
 | 6-10 | DONE | Payment services, YooKassa, API, jobs, mailer, integration tests | #6 |
-| 11-14 | DONE | ActiveAdmin + dashboard + discard + seeds + React frontend | #11 |
-| 15 | TODO | Production deploy | --- |
+| 11-14 | DONE | ActiveAdmin + dashboard + discard + seeds + React frontend | #11, #12 |
+| 15 | DONE | Production deploy (VPS, nginx, SSL, systemd) | deployed |
 
-**Current state:** 229 tests, 0 failures. 100+ files. 7 services, 6 models, 6 controllers, 3 jobs, 1 mailer, 6 admin resources, 5 React pages.
+**ALL 15 PRs COMPLETE.**
+
+**Production:** https://ауроспейс.рф
+**Admin:** https://ауроспейс.рф/a/
+**Current state:** 257 tests, 0 failures. 120+ files. 8 services, 6 models, 6 controllers, 3 jobs, 1 mailer, 6 admin resources, 5 React pages.
 `bin/ci`: 16 PASS, 0 FAIL.
 
 ---
@@ -502,7 +506,7 @@ Component tests (~8 examples).
 
 ---
 
-### PR 15: Production Deploy `feat/production-deploy` [M]
+### PR 15: Production Deploy `feat/production-deploy` [M] --- DONE
 **Depends on:** PR 14
 
 - Nginx config (SSL, proxy, gzip, serve frontend static build)

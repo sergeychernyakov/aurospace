@@ -38,52 +38,66 @@ body.active_admin {
   color: $dark-text;
   box-shadow: none;
 
-  h2 { color: $dark-text; font-weight: 600; }
+  h2 {
+    color: $dark-text !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
+    text-shadow: none !important;
+    background: none !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
 }
 
-// Panels — clean, no harsh borders
+// Panels — clean, minimal borders
 .panel {
   background: $dark-surface;
-  border: 1px solid $dark-border;
+  border: none !important;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 
   h3 {
-    background: $dark-surface;
-    color: $dark-text;
-    border-bottom: 1px solid $dark-border;
-    font-size: 14px;
-    font-weight: 600;
+    background: $dark-surface !important;
+    background-image: none !important;
+    color: $dark-text !important;
+    border: none !important;
+    border-bottom: 1px solid $dark-border !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
     padding: 12px 16px;
+    text-shadow: none !important;
+    margin: 0 !important;
   }
 
   .panel_contents { padding: 16px; }
 }
 
-// Tables
-table.index_table {
+// ALL tables (index, dashboard, show panels)
+table, table.index_table {
   border: none;
-  border-radius: 8px;
-  overflow: hidden;
+  border-collapse: collapse;
+  width: 100%;
 
   th {
-    background: $dark-surface;
-    color: $dark-text-muted;
-    border-bottom: 1px solid $dark-border;
+    background: $dark-surface !important;
+    color: $dark-text-muted !important;
+    border: 1px solid $dark-border !important;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 500;
+    font-style: normal !important;
   }
   td {
-    background: transparent;
-    color: $dark-text;
-    border-color: $dark-border;
+    background: $dark-bg !important;
+    color: $dark-text !important;
+    border: 1px solid $dark-border !important;
   }
-  tr { background: $dark-bg; }
-  tr:nth-child(even) { background: $dark-surface; }
-  tr:hover td { background: rgba(59, 130, 246, 0.1); }
+  tr:nth-child(even) td { background: $dark-surface !important; }
+  tr:hover td { background: rgba(59, 130, 246, 0.1) !important; }
 }
 
 .attributes_table {
@@ -187,6 +201,34 @@ nav.pagination {
     font-size: 14px;
 
     &:last-child { border-bottom: none; }
+  }
+}
+
+// Override ALL h3 in admin (ActiveAdmin uses section > h3, .panel > h3)
+body.active_admin h3,
+body.active_admin section > h3,
+body.active_admin .panel > h3 {
+  background: $dark-surface !important;
+  background-image: none !important;
+  color: $dark-text !important;
+  border: none !important;
+  border-bottom: 1px solid $dark-border !important;
+  font-style: normal !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+// Kill ALL remaining ActiveAdmin gradients and bright borders
+body.active_admin {
+  h1, h2, h3, h4, h5, h6 {
+    background-image: none !important;
+    text-shadow: none !important;
+  }
+
+  #title_bar, .title_bar {
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 }
 

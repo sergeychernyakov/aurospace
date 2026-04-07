@@ -49,7 +49,7 @@ export default function CreateOrderForm({ onClose }: CreateOrderFormProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="mx-4 w-full max-w-md rounded-lg border border-gray-700 bg-gray-800 p-6 shadow-xl">
+      <div className="mx-4 w-full max-w-md rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 p-6 shadow-xl">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-100">Create Order</h2>
           <button onClick={onClose} className="cursor-pointer text-gray-400 hover:text-gray-200">
@@ -70,7 +70,7 @@ export default function CreateOrderForm({ onClose }: CreateOrderFormProps) {
               value={amountRub}
               onChange={(e) => setAmountRub(e.target.value)}
               placeholder="100.00"
-              className="mt-1 block w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-white shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               required
             />
           </div>

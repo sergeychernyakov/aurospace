@@ -54,7 +54,7 @@ export default function OrdersListPage() {
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-800 p-1">
+      <div className="flex gap-1 rounded-lg bg-white dark:bg-gray-800 p-1">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -62,8 +62,8 @@ export default function OrdersListPage() {
             className={clsx(
               'cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
               statusFilter === tab.key
-                ? 'bg-gray-700 text-gray-100 shadow-sm'
-                : 'text-gray-400 hover:text-gray-100',
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-100 shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-100',
             )}
           >
             {tab.label}
@@ -72,12 +72,12 @@ export default function OrdersListPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800 shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         {filtered.length === 0 ? (
-          <p className="p-4 text-sm text-gray-400">No orders found</p>
+          <p className="p-4 text-sm text-gray-500 dark:text-gray-400">No orders found</p>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-900 text-left text-xs font-medium uppercase text-gray-400">
+            <thead className="bg-gray-100 dark:bg-gray-900 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">Amount</th>
@@ -86,12 +86,12 @@ export default function OrdersListPage() {
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {filtered.map((order) => (
                 <tr
                   key={order.id}
                   onClick={() => navigate(`/orders/${order.id}`)}
-                  className="cursor-pointer hover:bg-gray-700"
+                  className="cursor-pointer hover:bg-gray-200 dark:bg-gray-700"
                 >
                   <td className="px-4 py-3 font-medium text-blue-400">{order.id}</td>
                   <td className="px-4 py-3 text-gray-100">
@@ -100,7 +100,7 @@ export default function OrdersListPage() {
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-400">
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">

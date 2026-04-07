@@ -41,10 +41,15 @@ The project focuses exclusively on the financial domain: orders, payments, ledge
 | Layer | Technologies |
 |-------|-------------|
 | **Backend** | Ruby 3.2+, Rails 7.1+ (API mode), ActiveAdmin |
+| **State Machine** | AASM (declarative order lifecycle) |
+| **Service Layer** | dry-monads (Result monad: Success/Failure) |
 | **Frontend** | React, TypeScript, Vite, React Router, TanStack Query |
 | **Database** | PostgreSQL |
-| **Queue** | Redis + Sidekiq |
+| **Queue** | Redis + Sidekiq + sidekiq-unique-jobs |
 | **Payments** | YooKassa |
+| **API Docs** | rswag (OpenAPI / Swagger, auto-generated from specs) |
+| **Observability** | OpenTelemetry (distributed tracing: Rails, PG, Redis, Sidekiq, HTTP) |
+| **Architecture** | Packwerk (enforced module boundaries) |
 | **Infrastructure** | Docker / Docker Compose, Nginx, VPS |
 | **Quality** | RSpec, SimpleCov, RuboCop, Brakeman, bundle-audit, ESLint, Prettier |
 

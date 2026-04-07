@@ -2,36 +2,46 @@
 //= require chartkick
 //= require Chart.bundle
 
-// Theme toggle — syncs with React frontend via localStorage
+// === Theme toggle — syncs with React frontend via localStorage ===
+
+// Apply immediately (before DOMContentLoaded to prevent flash)
 (function() {
-  function applyTheme(dark) {
-    document.documentElement.classList.toggle('dark', dark);
-    document.body.classList.toggle('dark-theme', dark);
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
-  }
-
-  // Apply saved theme on load
-  var saved = localStorage.getItem('theme');
-  var isDark = saved ? saved === 'dark' : true;
-  applyTheme(isDark);
-
-  // Add toggle button to header
-  document.addEventListener('DOMContentLoaded', function() {
-    var header = document.getElementById('header');
-    if (!header) return;
-
-    var btn = document.createElement('button');
-    btn.id = 'theme-toggle';
-    btn.style.cssText = 'position:absolute;right:20px;top:8px;background:none;border:none;font-size:20px;cursor:pointer;z-index:999;';
-    btn.textContent = isDark ? '☀️' : '🌙';
-    btn.title = isDark ? 'Switch to light' : 'Switch to dark';
-    btn.onclick = function() {
-      isDark = !isDark;
-      applyTheme(isDark);
-      btn.textContent = isDark ? '☀️' : '🌙';
-      btn.title = isDark ? 'Switch to light' : 'Switch to dark';
-    };
-    header.style.position = 'relative';
-    header.appendChild(btn);
-  });
+  var isDark = (localStorage.getItem('theme') || 'dark') === 'dark';
+  document.documentElement.classList.toggle('dark', isDark);
 })();
+
+// Add toggle button after DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+  var isDark = (localStorage.getItem('theme') || 'dark') === 'dark';
+  var header = document.getElementById('header');
+  if (!header || document.getElementById('aa-theme-toggle')) return;
+
+  var btn = document.createElement('button');
+  btn.id = 'aa-theme-toggle';
+  btn.style.cssText = [
+    'position:absolute',
+    'right:20px',
+    'top:50%',
+    'transform:translateY(-50%)',
+    'background:none',
+    'border:none',
+    'font-size:22px',
+    'cursor:pointer',
+    'z-index:999',
+    'padding:4px 8px',
+    'line-height:1'
+  ].join(';');
+  btn.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19'; // ☀️ or 🌙
+  btn.title = isDark ? 'Light mode' : 'Dark mode';
+
+  btn.addEventListener('click', function() {
+    isDark = !isDark;
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    btn.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    btn.title = isDark ? 'Light mode' : 'Dark mode';
+  });
+
+  header.style.position = 'relative';
+  header.appendChild(btn);
+});

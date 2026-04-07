@@ -19,6 +19,7 @@ RSpec/DescribeClass:
   Exclude:
     - 'spec/architecture/architecture_spec.rb'
     - 'spec/integration/**/*'
+    - 'spec/requests/admin/**/*'
 
 # Offense count: 1
 # Configuration parameters: Max, CountAsOne.

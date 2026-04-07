@@ -15,4 +15,12 @@ class LedgerEntry < ApplicationRecord
   # Immutable: prevent update and destroy after creation
   before_update { raise ActiveRecord::ReadOnlyRecord }
   before_destroy { raise ActiveRecord::ReadOnlyRecord }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    ['id', 'account_id', 'order_id', 'entry_type', 'amount_cents', 'currency', 'reference', 'created_at', 'updated_at']
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    ['account', 'order']
+  end
 end

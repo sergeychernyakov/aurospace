@@ -2,9 +2,14 @@
 
 # app/controllers/accounts_controller.rb
 
-class AccountsController < ApplicationController
+class AccountsController < ApiController
   def show
-    account = Account.find(params[:id])
+    account = if params[:user_id]
+                Account.find_by!(user_id: params[:user_id])
+              else
+                Account.find(params[:id])
+              end
+
     render json: {
       id: account.id,
       user_id: account.user_id,

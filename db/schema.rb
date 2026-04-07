@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_07_200000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -20,6 +20,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
     t.string "currency", default: "RUB", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_accounts_on_discarded_at"
     t.index ["user_id"], name: "index_accounts_on_user_id", unique: true
   end
 
@@ -44,6 +46,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
     t.datetime "sent_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_notification_logs_on_discarded_at"
     t.index ["order_id", "mail_type"], name: "index_notification_logs_on_order_id_and_mail_type", unique: true
   end
 
@@ -58,6 +62,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
     t.datetime "cancelled_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_orders_on_discarded_at"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["user_id"], name: "index_orders_on_user_id"
     t.check_constraint "amount_cents > 0", name: "orders_amount_cents_positive"
@@ -68,6 +74,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_users_on_discarded_at"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
@@ -80,6 +88,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
     t.string "status", default: "pending", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "discarded_at"
+    t.index ["discarded_at"], name: "index_webhook_events_on_discarded_at"
     t.index ["external_event_id"], name: "index_webhook_events_on_external_event_id", unique: true
     t.index ["provider"], name: "index_webhook_events_on_provider"
   end

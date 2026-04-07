@@ -427,19 +427,78 @@ Request specs (~15 examples).
 
 ---
 
-### PR 13: Frontend Scaffold `feat/frontend-scaffold` [L]
-**Depends on:** PR 8. **Parallel with PR 10, 11.**
+### PR 13: Frontend — Scaffold + API Client `feat/frontend-scaffold` [L]
+**Depends on:** PR 8. **Parallel with PR 11.**
 
-Demo-user mode (UserSelector). Typed API client (can use OpenAPI schema from rswag). TanStack Query hooks. Shared components.
+**Principle:** React = thin demo customer cabinet. ActiveAdmin = thick backoffice/audit. No duplication.
+
+**Create:**
+- `frontend/src/main.tsx`, `src/App.tsx` (replace placeholder)
+- `frontend/src/app/Router.tsx` --- routes
+- `frontend/src/api/client.ts` --- typed fetch wrapper (base URL from env)
+- `frontend/src/api/types.ts` --- Order, Account, LedgerEntry, User types (Zod schemas)
+- `frontend/src/api/orders.ts` --- TanStack Query hooks: `useOrders`, `useOrder`, `useCreateOrder`, `usePayOrder`, `useCancelOrder`
+- `frontend/src/api/accounts.ts` --- `useAccount` hook
+- `frontend/src/api/users.ts` --- `useUsers` hook (for demo selector)
+- Shared components:
+  - `Layout` --- header with nav + demo user selector + links to Admin/API Docs
+  - `UserSelector` --- dropdown with seeded demo users
+  - `StatusBadge` --- colored badge per order status
+  - `MoneyFormat` --- formats cents -> "100.00 RUB"
+  - `LoadingSpinner`, `ErrorDisplay`
+- `frontend/src/index.css` --- Tailwind imports
+- `frontend/tailwind.config.js`, `frontend/postcss.config.js`
+
+**Layout navigation:**
+- Dashboard
+- Orders
+- Account
+- API Docs (link to `/api-docs`)
+- Admin Panel (link to `/admin`)
 
 Component tests (~8 examples).
 
 ---
 
-### PR 14: Frontend Pages `feat/frontend-pages` [M]
+### PR 14: Frontend — Pages `feat/frontend-pages` [M]
 **Depends on:** PR 13
 
-Dashboard, Orders list, Order detail (AASM-aware buttons), Account + ledger. No login/register. `cursor: pointer`.
+**5 pages, each thin and focused:**
+
+**1. DashboardPage (`/`)**
+- Current balance card (big number)
+- Summary cards: total orders, successful, payment_pending, cancelled
+- Recent orders list (last 5)
+- "Create Order" CTA button
+- Selected demo user context
+
+**2. OrdersListPage (`/orders`)**
+- Table: #, amount, status (badge), created_at, actions
+- Status filter tabs: All / Created / Payment Pending / Successful / Cancelled
+- Click row -> order detail
+- "Create Order" button
+
+**3. OrderDetailPage (`/orders/:id`)**
+- Order info card: number, amount, status, dates (created, paid, cancelled), payment_id
+- Action buttons (AASM-aware):
+  - `created` -> "Pay" button
+  - `payment_pending` -> "Waiting for payment" badge
+  - `successful` -> "Cancel Order" button
+  - `cancelled` -> read-only view
+- Ledger entries for THIS order only (credit/reversal, not full account audit)
+- Back to orders link
+
+**4. AccountPage (`/accounts/:id`)**
+- Balance card
+- Recent ledger entries (last 20): type, amount, order reference, date
+- Link to full audit in Admin
+
+**5. CreateOrderForm (modal or inline on Dashboard/OrdersList)**
+- Amount field (RUB)
+- Submit -> POST /orders -> redirect to order detail
+- Validation: positive amount
+
+**All interactive elements:** `cursor: pointer` per AGENTS.md.
 
 Component tests (~8 examples).
 
@@ -448,7 +507,7 @@ Component tests (~8 examples).
 ### PR 15: Production Deploy `feat/production-deploy` [M]
 **Depends on:** PR 14
 
-- Nginx config (SSL, proxy, gzip)
+- Nginx config (SSL, proxy, gzip, serve frontend static build)
 - `bin/deploy` script
 - `docker-compose.production.yml` (+ optional OTEL collector)
 - `docs/DEPLOYMENT.md`
@@ -488,8 +547,8 @@ PR1 → PR2 → PR3 → PR4 → PR5 → PR6 → PR7 → PR8 → PR9 → PR10
 | 10 | Integration Tests | M | ~20 |
 | 11 | ActiveAdmin + Dashboard (charts, Sidekiq, DB, server) | L | ~15 |
 | 12 | Seeds | S | ~2 |
-| 13 | Frontend Scaffold (demo-user mode) | L | ~8 |
-| 14 | Frontend Pages | M | ~8 |
+| 13 | Frontend Scaffold + API Client | L | ~8 |
+| 14 | Frontend Pages (5 screens, demo-user mode) | M | ~8 |
 | 15 | Production Deploy + smoke tests | M | ~5 |
 | **Total** | | | **~235** |
 
@@ -539,3 +598,164 @@ These are the heart of the project. Everything else is an amplifier.
 - `bin/check_coverage` --- 90% global, 95% critical domain
 - CI pipeline passes
 - No side effects before commit
+
+---
+
+## Demo Video Script (Manual Testing Scenario)
+
+> Step-by-step scenario for recording a demo video.
+> Shows the complete payment lifecycle through React frontend + ActiveAdmin backoffice.
+
+### Setup
+
+```bash
+docker compose up
+# Wait for all services healthy
+# Open browser: http://localhost:5173 (React) and http://localhost:3000/admin (ActiveAdmin)
+```
+
+---
+
+### Scene 1: React Dashboard (30 sec)
+
+1. Open React app (`http://localhost:5173`)
+2. Show **demo user selector** in header --- select "Demo User 1"
+3. Show **dashboard**:
+   - Balance: 0 RUB
+   - Summary cards: 0 orders
+   - Empty recent orders
+4. Point out navigation: Dashboard, Orders, Account, API Docs, Admin Panel
+
+---
+
+### Scene 2: Create Order (30 sec)
+
+1. Click **"Create Order"** button
+2. Enter amount: **5000** RUB
+3. Submit
+4. Order appears with status **`created`** (green badge)
+5. Show order detail page: amount, status, created_at
+6. Balance still 0 (no payment yet)
+
+---
+
+### Scene 3: Initiate Payment (30 sec)
+
+1. On order detail page, click **"Pay"** button
+2. Status changes to **`payment_pending`** (yellow badge)
+3. Show: `payment_provider: yookassa`, `external_payment_id` appeared
+4. Explain: in production, user would be redirected to YooKassa payment page
+5. Balance still 0 (payment not confirmed)
+
+---
+
+### Scene 4: Webhook Simulates Payment Success (45 sec)
+
+1. Open terminal, send webhook:
+   ```bash
+   curl -X POST http://localhost:3000/webhooks/yookassa \
+     -H "Content-Type: application/json" \
+     -d '{"event":"payment.succeeded","object":{"id":"<external_payment_id>"}}'
+   ```
+2. Return to React app
+3. Refresh order detail: status now **`successful`** (green badge)
+4. `paid_at` timestamp appeared
+5. Go to **Account page**: balance now **5000 RUB**
+6. Show **ledger entry**: `credit`, +5000
+
+---
+
+### Scene 5: Cancel Order with Reversal (45 sec)
+
+1. On order detail page, click **"Cancel Order"** button
+2. Confirm
+3. Status changes to **`cancelled`** (red badge)
+4. `cancelled_at` timestamp appeared
+5. Go to **Account page**: balance back to **0 RUB**
+6. Show **two ledger entries**:
+   - `credit` +5000 (from payment)
+   - `reversal` +5000 (compensating entry --- but balance decreased because reversal undoes the credit)
+7. Explain: "Past is never rewritten. Reversal is a compensating entry."
+
+---
+
+### Scene 6: Idempotency Demo (30 sec)
+
+1. Send the **same webhook again** (same `external_payment_id`):
+   ```bash
+   curl -X POST http://localhost:3000/webhooks/yookassa \
+     -H "Content-Type: application/json" \
+     -d '{"event":"payment.succeeded","object":{"id":"<same_payment_id>"}}'
+   ```
+2. Return to React: order still `cancelled`, balance still 0
+3. Explain: "Duplicate webhook was silently ignored. No double-crediting."
+
+---
+
+### Scene 7: ActiveAdmin Backoffice (1 min)
+
+1. Open **Admin Panel** (`http://localhost:3000/admin`)
+2. Login with Basic Auth (admin / password)
+3. **Dashboard**: show charts
+   - Orders by status (pie chart)
+   - Revenue over time (line chart)
+   - Sidekiq queue sizes
+   - Database table stats
+4. **Orders page**: show all orders, filter by status
+5. Click on the order we just created: show detail view
+   - Order info
+   - Associated **ledger entries** table (credit + reversal)
+6. **WebhookEvents page**: show both webhook events (original + duplicate)
+   - First: `status: processed`
+   - Second: `status: duplicate` (or not stored if caught by unique index)
+7. **NotificationLogs page**: show emails that were sent
+   - `order_created`
+   - `payment_successful`
+   - `order_cancelled`
+8. **Accounts page**: show account with balance history
+
+---
+
+### Scene 8: Create Second Order (30 sec)
+
+1. Back to React
+2. Create another order: **3000 RUB**
+3. Pay it (send webhook)
+4. Show: balance now **3000 RUB** (only this order, previous was cancelled)
+5. Show Account page: 3 ledger entries total
+
+---
+
+### Scene 9: Quality & Code (30 sec)
+
+1. Terminal: run `bin/ci --fast`
+2. Show: all checks passing (RuboCop, RSpec, Brakeman, coverage, etc.)
+3. Mention: "216+ tests, 95%+ critical domain coverage, architecture enforcement"
+
+---
+
+### Scene 10: Wrap-up (15 sec)
+
+Key points to say:
+- "Ledger-based accounting --- every balance change leaves a trail"
+- "Idempotent webhook processing --- safe to replay"
+- "After-commit discipline --- no side effects inside transactions"
+- "Quality gates enforce this automatically"
+
+---
+
+### Video Timing Estimate
+
+| Scene | Duration | Topic |
+|-------|----------|-------|
+| 1 | 0:30 | Dashboard overview |
+| 2 | 0:30 | Create order |
+| 3 | 0:30 | Initiate payment |
+| 4 | 0:45 | Webhook -> successful |
+| 5 | 0:45 | Cancel with reversal |
+| 6 | 0:30 | Idempotency |
+| 7 | 1:00 | ActiveAdmin tour |
+| 8 | 0:30 | Second order |
+| 9 | 0:30 | Quality gates |
+| 10 | 0:15 | Wrap-up |
+| **Total** | **~5:45** | |

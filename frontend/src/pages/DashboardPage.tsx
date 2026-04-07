@@ -50,7 +50,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-100">Dashboard</h1>
         <button
           onClick={() => setShowForm(true)}
           className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
@@ -70,28 +70,28 @@ export default function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Total Orders', value: statusCounts.total, color: 'text-gray-900' },
-          { label: 'Successful', value: statusCounts.successful, color: 'text-green-600' },
-          { label: 'Pending', value: statusCounts.payment_pending, color: 'text-yellow-600' },
-          { label: 'Cancelled', value: statusCounts.cancelled, color: 'text-red-600' },
+          { label: 'Total Orders', value: statusCounts.total, color: 'text-gray-100' },
+          { label: 'Successful', value: statusCounts.successful, color: 'text-green-400' },
+          { label: 'Pending', value: statusCounts.payment_pending, color: 'text-yellow-400' },
+          { label: 'Cancelled', value: statusCounts.cancelled, color: 'text-red-400' },
         ].map((card) => (
-          <div key={card.label} className="rounded-lg border bg-white p-4 shadow-sm">
-            <p className="text-sm text-gray-500">{card.label}</p>
+          <div key={card.label} className="rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+            <p className="text-sm text-gray-400">{card.label}</p>
             <p className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</p>
           </div>
         ))}
       </div>
 
       {/* Recent Orders */}
-      <div className="rounded-lg border bg-white shadow-sm">
-        <div className="border-b px-4 py-3">
-          <h2 className="font-semibold text-gray-900">Recent Orders</h2>
+      <div className="rounded-lg border border-gray-700 bg-gray-800 shadow-sm">
+        <div className="border-b border-gray-700 px-4 py-3">
+          <h2 className="font-semibold text-gray-100">Recent Orders</h2>
         </div>
         {recentOrders.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500">No orders yet</p>
+          <p className="p-4 text-sm text-gray-400">No orders yet</p>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+            <thead className="bg-gray-900 text-left text-xs font-medium uppercase text-gray-400">
               <tr>
                 <th className="px-4 py-2">#</th>
                 <th className="px-4 py-2">Amount</th>
@@ -99,24 +99,24 @@ export default function DashboardPage() {
                 <th className="px-4 py-2">Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-gray-700">
               {recentOrders.map((order) => (
-                <tr key={order.id} className="cursor-pointer hover:bg-gray-50">
+                <tr key={order.id} className="cursor-pointer hover:bg-gray-700">
                   <td className="px-4 py-3">
                     <Link
                       to={`/orders/${order.id}`}
-                      className="cursor-pointer text-blue-600 hover:underline"
+                      className="cursor-pointer text-blue-400 hover:underline"
                     >
                       {order.id}
                     </Link>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-100">
                     <MoneyFormat cents={order.amount_cents} currency={order.currency} />
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={order.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-400">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
                 </tr>

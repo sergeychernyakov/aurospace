@@ -21,6 +21,7 @@ module Orders
         order.update!(cancelled_at: Time.zone.now)
       end
 
+      request_refund(order)
       SendOrderEmailJob.perform_later(order.id, 'order_cancelled')
       Success(order.reload)
     rescue AASM::InvalidTransition, Orders::InvalidTransitionError
@@ -37,6 +38,12 @@ module Orders
         amount_cents: order.amount_cents,
         reference: "cancel_order_#{order.id}",
       ).value!
+    end
+
+    def request_refund(order)
+      Yookassa::CreateRefund.new.call(order: order)
+    rescue StandardError => e
+      Rails.logger.error("Refund request failed for order #{order.id}: #{e.message}")
     end
   end
 end

@@ -30,6 +30,23 @@ class YookassaClient
     handle_response(response)
   end
 
+  # @param payment_id [String] external payment ID to refund
+  # @param amount_cents [Integer] amount in cents to refund
+  # @param currency [String] currency code
+  # @param idempotence_key [String] unique key for idempotent requests
+  # @return [Hash] parsed response body
+  def create_refund(payment_id:, amount_cents:, currency:, idempotence_key:)
+    response = connection.post('/v3/refunds') do |req|
+      req.headers['Idempotence-Key'] = idempotence_key
+      req.body = {
+        payment_id: payment_id,
+        amount: { value: (amount_cents / 100.0).to_s, currency: currency },
+      }.to_json
+    end
+
+    handle_response(response)
+  end
+
   # @param payment_id [String] external payment ID
   # @return [Hash] parsed response body
   def get_payment(payment_id:)

@@ -43,6 +43,7 @@ module Yookassa
       case event_type
       when 'payment.succeeded' then handle_payment_succeeded(object)
       when 'payment.canceled' then handle_payment_canceled(object)
+      when 'refund.succeeded' then handle_refund_succeeded(object)
       else Success(:unknown_event_type)
       end
     end
@@ -59,6 +60,11 @@ module Yookassa
       return Failure(:unknown_order) unless order
 
       Success(:payment_canceled)
+    end
+
+    def handle_refund_succeeded(object)
+      Rails.logger.info("Refund succeeded for payment #{object["payment_id"]}")
+      Success(:refund_logged)
     end
   end
 end

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# bin/ci — Run all quality gates locally (mirrors CI pipeline)
+# bin/ci — Run all quality gates locally (mirrors CI pipeline 1:1)
+# Usage: bin/ci            — backend + security + frontend (no Docker)
+#        bin/ci --full     — all checks including Docker
 
 set -uo pipefail
 
@@ -13,11 +15,15 @@ NC='\033[0m'
 PASS=0
 FAIL=0
 WARN=0
+SKIP=0
+
+FULL_MODE=false
+[[ "${1:-}" == "--full" ]] && FULL_MODE=true
 
 run_check() {
   local name=$1
   shift
-  printf "${BLUE}  ▸ %-32s${NC}" "$name"
+  printf "${BLUE}  ▸ %-34s${NC}" "$name"
   if OUTPUT=$("$@" 2>&1); then
     printf "${GREEN}PASS${NC}\n"
     PASS=$((PASS + 1))
@@ -34,7 +40,7 @@ run_check() {
 run_warn() {
   local name=$1
   shift
-  printf "${BLUE}  ▸ %-32s${NC}" "$name"
+  printf "${BLUE}  ▸ %-34s${NC}" "$name"
   if OUTPUT=$("$@" 2>&1); then
     printf "${GREEN}PASS${NC}\n"
     PASS=$((PASS + 1))
@@ -46,67 +52,127 @@ run_warn() {
   fi
 }
 
+run_skip() {
+  local name=$1
+  local reason=$2
+  printf "${BLUE}  ▸ %-34s${NC}${YELLOW}SKIP${NC} %s\n" "$name" "$reason"
+  SKIP=$((SKIP + 1))
+}
+
 echo ""
-echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}  AUROSPACE — Local Quality Gates${NC}"
-echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
 echo ""
 
-# ═══════════════════════════════════════
-# Backend
-# ═══════════════════════════════════════
-echo -e "${BOLD}  Backend${NC}"
-echo "  ─────────────────────────────────────────"
+# ═══════════════════════════════════════════════
+# 1. Backend Lint
+# ═══════════════════════════════════════════════
+echo -e "${BOLD}  Backend: Lint${NC}"
+echo "  ───────────────────────────────────────────"
 
-run_check "RuboCop"                    bundle exec rubocop --parallel --format simple
-run_check "RSpec"                      bundle exec rspec --format progress
-run_check "Packwerk"                   bundle exec packwerk validate
-run_check "Brakeman"                   bundle exec brakeman -q --no-pager
-run_warn  "bundle-audit"               bundle exec bundle-audit check --update
+run_check "RuboCop"                      bundle exec rubocop --parallel --format simple
+
+echo ""
+
+# ═══════════════════════════════════════════════
+# 2. Backend Security
+# ═══════════════════════════════════════════════
+echo -e "${BOLD}  Backend: Security${NC}"
+echo "  ───────────────────────────────────────────"
+
+run_check "Brakeman"                     bundle exec brakeman -q --no-pager
+run_check "bundle-audit"                 bundle exec bundle-audit check --update
+
+# Secret scan (same logic as CI)
+run_check "Secret scan" bash -c '
+  MATCHES=$(grep -rn "BEGIN.*PRIVATE KEY" --include="*.rb" --include="*.yml" --include="*.json" . 2>/dev/null \
+    | grep -v ".github/workflows/" | grep -v "lefthook.yml" | grep -v "# Check for" \
+    | grep -v "vendor/" | grep -v "node_modules/" || true)
+  if [ -n "$MATCHES" ]; then echo "$MATCHES"; exit 1; fi
+'
+
+echo ""
+
+# ═══════════════════════════════════════════════
+# 3. Backend Tests + Coverage
+# ═══════════════════════════════════════════════
+echo -e "${BOLD}  Backend: Tests${NC}"
+echo "  ───────────────────────────────────────────"
+
+run_check "RSpec"                        bundle exec rspec --format progress
 
 if [ -x bin/check_coverage ] && [ -f coverage/.resultset.json ]; then
-  run_check "Coverage (95% critical)"  ruby bin/check_coverage
+  run_check "Coverage (critical 95%)"    ruby bin/check_coverage
+else
+  run_skip  "Coverage (critical 95%)"    "(no coverage data yet)"
 fi
 
 echo ""
 
-# ═══════════════════════════════════════
-# Frontend
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
+# 4. Backend Quality
+# ═══════════════════════════════════════════════
+echo -e "${BOLD}  Backend: Quality${NC}"
+echo "  ───────────────────────────────────────────"
+
+run_check "Packwerk"                     bundle exec packwerk validate
+run_check "Architecture specs"           bundle exec rspec spec/architecture/ --format progress
+
+if command -v yard > /dev/null 2>&1 || bundle exec yard --version > /dev/null 2>&1; then
+  run_warn "YARD docs"                   bundle exec yard stats
+else
+  run_skip "YARD docs"                   "(yard not available)"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════════
+# 5. Frontend
+# ═══════════════════════════════════════════════
 if [ -f frontend/package-lock.json ]; then
   echo -e "${BOLD}  Frontend${NC}"
-  echo "  ─────────────────────────────────────────"
-  run_check "ESLint"                   bash -c "cd frontend && npx eslint . --max-warnings 0"
-  run_check "Prettier"                 bash -c "cd frontend && npx prettier --check 'src/**/*.{ts,tsx,js,jsx,css,scss,json}'"
-  run_check "TypeScript"               bash -c "cd frontend && npx tsc --noEmit"
-  run_check "Vitest"                   bash -c "cd frontend && npm test -- --watchAll=false"
-  run_check "Build"                    bash -c "cd frontend && npm run build"
+  echo "  ───────────────────────────────────────────"
+  run_check "ESLint"                     bash -c "cd frontend && npx eslint . --max-warnings 0"
+  run_check "Prettier"                   bash -c "cd frontend && npx prettier --check 'src/**/*.{ts,tsx,js,jsx,css,scss,json}'"
+  run_check "Stylelint"                  bash -c "cd frontend && npx stylelint 'src/**/*.{css,scss}' --max-warnings 0"
+  run_check "TypeScript"                 bash -c "cd frontend && npx tsc --noEmit"
+  run_check "Vitest"                     bash -c "cd frontend && npm test -- --watchAll=false"
+  run_check "Build"                      bash -c "cd frontend && npm run build"
   echo ""
 else
   echo -e "  ${YELLOW}Frontend: skipped (no package-lock.json)${NC}"
   echo ""
 fi
 
-# ═══════════════════════════════════════
-# Docker (optional)
-# ═══════════════════════════════════════
-if [ "${CI_DOCKER:-0}" = "1" ] && command -v docker > /dev/null 2>&1; then
-  echo -e "${BOLD}  Docker${NC}"
-  echo "  ─────────────────────────────────────────"
-  if command -v hadolint > /dev/null 2>&1; then
-    run_check "Hadolint"               hadolint Dockerfile
+# ═══════════════════════════════════════════════
+# 6. Docker (only with --full)
+# ═══════════════════════════════════════════════
+if $FULL_MODE; then
+  if command -v docker > /dev/null 2>&1; then
+    echo -e "${BOLD}  Docker${NC}"
+    echo "  ───────────────────────────────────────────"
+    if command -v hadolint > /dev/null 2>&1; then
+      run_check "Hadolint"               hadolint Dockerfile
+    else
+      run_skip  "Hadolint"               "(not installed)"
+    fi
+    run_check "Docker build"             docker build --target production -t aurospace:test .
+    echo ""
+  else
+    echo -e "  ${YELLOW}Docker: skipped (docker not available)${NC}"
+    echo ""
   fi
-  run_check "Docker build"             docker build --target production -t aurospace:test .
-  echo ""
 fi
 
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 # Summary
-# ═══════════════════════════════════════
-TOTAL=$((PASS + FAIL + WARN))
-echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
-printf "  ${GREEN}PASS: %d${NC}  ${RED}FAIL: %d${NC}  ${YELLOW}WARN: %d${NC}  Total: %d\n" "$PASS" "$FAIL" "$WARN" "$TOTAL"
-echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+# ═══════════════════════════════════════════════
+TOTAL=$((PASS + FAIL + WARN + SKIP))
+echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+printf "  ${GREEN}PASS: %d${NC}  ${RED}FAIL: %d${NC}  ${YELLOW}WARN: %d${NC}  SKIP: %d  Total: %d\n" \
+  "$PASS" "$FAIL" "$WARN" "$SKIP" "$TOTAL"
+echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
 echo ""
 
 if [ "$FAIL" -gt 0 ]; then

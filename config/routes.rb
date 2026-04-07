@@ -2,7 +2,17 @@
 
 # config/routes.rb
 
+require 'sidekiq/web'
+
+Sidekiq::Web.use Rack::Auth::Basic do |user, pass|
+  ActiveSupport::SecurityUtils.secure_compare(user, ENV.fetch('ADMIN_USER', 'admin')) &
+    ActiveSupport::SecurityUtils.secure_compare(pass, ENV.fetch('ADMIN_PASSWORD', 'password'))
+end
+
 Rails.application.routes.draw do
+  ActiveAdmin.routes(self)
+  mount Sidekiq::Web => '/admin/sidekiq'
+
   draw(:health)
 
   resources :orders, only: [:index, :show, :create] do

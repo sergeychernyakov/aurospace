@@ -10,6 +10,7 @@ require 'active_record/railtie'
 require 'action_controller/railtie'
 require 'action_mailer/railtie'
 require 'action_view/railtie'
+require 'sprockets/railtie'
 
 Bundler.require(*Rails.groups)
 
@@ -17,7 +18,10 @@ module Aurospace
   class Application < Rails::Application
     config.load_defaults 7.2
 
-    config.api_only = true
+    # ActiveAdmin requires the full middleware stack (sessions, cookies, flash, assets, layouts).
+    # Set api_only = false so ActionController::Base gets full functionality.
+    # API controllers inherit from ActionController::API explicitly.
+    config.api_only = false
     config.time_zone = 'Moscow'
     config.active_job.queue_adapter = :sidekiq
 

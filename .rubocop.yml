@@ -117,6 +117,10 @@ Rails/FilePath:
 Rails/I18nLocaleTexts:
   Enabled: false
 
+Rails/Output:
+  Exclude:
+    - 'db/seeds.rb'
+
 Rails/SkipsModelValidations:
   Exclude:
     - 'spec/**/*'

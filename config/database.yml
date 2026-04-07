@@ -5,7 +5,7 @@ default: &default
 
 development:
   <<: *default
-  url: <%= ENV.fetch('DATABASE_URL', 'postgresql://aurospace:aurospace_dev@localhost:5432/aurospace_development') %>
+  url: <%= ENV.fetch('DATABASE_URL', 'postgresql://localhost:5432/aurospace_development') %>
 
 test:
   <<: *default

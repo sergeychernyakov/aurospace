@@ -4,6 +4,9 @@
 
 class Order < ApplicationRecord
   include AASM
+  include Discard::Model
+
+  default_scope -> { kept }
 
   belongs_to :user
   has_many :ledger_entries, dependent: :restrict_with_error
@@ -16,6 +19,15 @@ class Order < ApplicationRecord
   scope :stale_payment_pending, lambda { |threshold = 30.minutes|
     where(status: :payment_pending).where(updated_at: ...threshold.ago)
   }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    ['id', 'user_id', 'amount_cents', 'currency', 'status', 'paid_at', 'cancelled_at', 'created_at', 'updated_at',
+     'discarded_at',]
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    ['user', 'ledger_entries']
+  end
 
   aasm column: :status, enum: true, whiny_persistence: true do
     state :created, initial: true

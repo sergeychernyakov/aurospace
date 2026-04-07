@@ -30,6 +30,7 @@ jobs:
     outputs:
       has_backend: ${{ steps.check.outputs.has_backend }}
       has_frontend: ${{ steps.check.outputs.has_frontend }}
+      has_schema: ${{ steps.check.outputs.has_schema }}
     steps:
       - uses: actions/checkout@v4
       - id: check
@@ -40,6 +41,13 @@ jobs:
           else
             echo "has_backend=false" >> $GITHUB_OUTPUT
             echo "::warning::Backend scaffold not found (Gemfile.lock, config/routes.rb). Backend jobs will be skipped."
+          fi
+          if [ -f db/schema.rb ] || [ -n "$(ls db/migrate/*.rb 2>/dev/null)" ]; then
+            echo "has_schema=true" >> $GITHUB_OUTPUT
+            echo "Database schema/migrations detected"
+          else
+            echo "has_schema=false" >> $GITHUB_OUTPUT
+            echo "::warning::No db/schema.rb or migrations. Docker Compose Smoke will be skipped."
           fi
           if [ -f frontend/package-lock.json ]; then
             echo "has_frontend=true" >> $GITHUB_OUTPUT
@@ -339,7 +347,7 @@ jobs:
   docker-smoke:
     name: Docker Compose Smoke
     needs: [bootstrap]
-    if: needs.bootstrap.outputs.has_backend == 'true'
+    if: needs.bootstrap.outputs.has_backend == 'true' && needs.bootstrap.outputs.has_schema == 'true'
     runs-on: ubuntu-latest
     env:
       SECRET_KEY_BASE: test_secret_key_base_for_ci_only

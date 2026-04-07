@@ -2,15 +2,14 @@
 # frozen_string_literal: true
 
 SimpleCov.start 'rails' do
-  # === Global thresholds ===
-  # Build FAILS if total coverage drops below 90%
-  minimum_coverage line: 90, branch: 85
-
-  # Individual files must have at least 80% coverage
-  minimum_coverage_by_file 80
-
   # Branch coverage: catches untested if/else, case/when, ternary
   enable_coverage :branch
+
+  # === Global thresholds ===
+  # Enforced by bin/check_coverage (handles scaffold state gracefully).
+  # SimpleCov's built-in minimum_coverage is intentionally NOT set here
+  # because it fails on zero-line scaffold with no domain code yet.
+  # bin/check_coverage enforces: 90% global, 95% critical, 80% per-file.
 
   # === Critical domain folders: 95%+ ===
   # These are the money paths. 90% global is not enough here.

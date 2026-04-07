@@ -4,11 +4,12 @@
 # Non-root user, minimal image, healthcheck included.
 
 # === Stage 1: Base ===
-FROM ruby:3.2-slim AS base
+FROM ruby:3.3-slim AS base
 
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
       libpq5 \
+      libyaml-0-2 \
       curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,6 +27,7 @@ RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
       build-essential \
       libpq-dev \
+      libyaml-dev \
       git \
     && rm -rf /var/lib/apt/lists/*
 

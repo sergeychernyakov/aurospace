@@ -1,0 +1,8 @@
+include:
+  - "app/**/*.rb"
+  - "lib/**/*.rb"
+exclude:
+  - "spec/**/*"
+  - "db/**/*"
+  - "config/**/*"
+  - "vendor/**/*"

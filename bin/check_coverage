@@ -8,11 +8,18 @@
 #
 # Global 90% can be gamed by testing helpers and serializers.
 # This script ensures the MONEY CODE is actually tested.
+#
+# Scaffold state: when total trackable lines < MIN_LINES_FOR_ENFORCEMENT,
+# coverage checks are skipped with a warning (nothing meaningful to cover yet).
 
 require 'json'
 
 COVERAGE_FILE = 'coverage/.resultset.json'
 LAST_RUN_FILE = 'coverage/.last_run.json'
+
+# Minimum lines in a folder before enforcement kicks in.
+# Folders with fewer lines are considered scaffold-only (base classes).
+MIN_FOLDER_LINES = 10
 
 # Critical folders with higher thresholds
 CRITICAL_THRESHOLDS = {
@@ -23,6 +30,14 @@ CRITICAL_THRESHOLDS = {
   'app/mailers'           => 90,
   'app/models'            => 90,
 }.freeze
+
+# Base class files excluded from folder coverage (scaffold boilerplate)
+SCAFFOLD_FILES = %w[
+  application_record.rb
+  application_job.rb
+  application_mailer.rb
+  application_controller.rb
+].freeze
 
 GLOBAL_THRESHOLD = 90
 
@@ -42,29 +57,23 @@ def main
 
   # Check per-folder thresholds
   CRITICAL_THRESHOLDS.each do |folder, threshold|
-    folder_files = file_coverage.select { |path, _| path.include?(folder) }
+    folder_files = file_coverage.select do |path, _|
+      path.include?(folder) && SCAFFOLD_FILES.none? { |base| path.end_with?(base) }
+    end
 
     if folder_files.empty?
-      puts "  SKIP  #{folder} (no files yet)"
+      puts "  SKIP  #{folder} (no domain files yet)"
       next
     end
 
-    total_lines = 0
-    covered_lines = 0
+    total_lines, covered_lines = count_coverage(folder_files)
 
-    folder_files.each do |_path, lines|
-      line_data = lines.is_a?(Hash) ? lines['lines'] : lines
-      next unless line_data.is_a?(Array)
-
-      line_data.each do |hit|
-        next if hit.nil?
-
-        total_lines += 1
-        covered_lines += 1 if hit.positive?
-      end
+    if total_lines < MIN_FOLDER_LINES
+      puts "  SKIP  #{folder} (#{total_lines} lines < #{MIN_FOLDER_LINES} minimum)"
+      next
     end
 
-    percent = total_lines.positive? ? (covered_lines.to_f / total_lines * 100).round(2) : 0
+    percent = (covered_lines.to_f / total_lines * 100).round(2)
     status = percent >= threshold ? 'PASS' : 'FAIL'
 
     puts format('  %-6s %s: %.2f%% (threshold: %d%%)', status, folder, percent, threshold)
@@ -74,8 +83,12 @@ def main
     end
   end
 
-  # Check global coverage
-  if File.exist?(LAST_RUN_FILE)
+  # Check global coverage (skip if only scaffold base classes exist)
+  non_scaffold_lines = count_non_scaffold_lines(file_coverage)
+
+  if non_scaffold_lines < MIN_FOLDER_LINES
+    puts format("\n  SKIP  Global (%d non-scaffold lines < %d minimum)", non_scaffold_lines, MIN_FOLDER_LINES)
+  elsif File.exist?(LAST_RUN_FILE)
     last_run = JSON.parse(File.read(LAST_RUN_FILE))
     global = last_run.dig('result', 'covered_percent')&.round(2)
 
@@ -92,15 +105,47 @@ def main
   puts
 
   if failures.any?
-    warn "Coverage gate FAILED:"
+    warn 'Coverage gate FAILED:'
     failures.each do |f|
       warn "  #{f[:folder]}: #{f[:actual]}% < #{f[:threshold]}%"
     end
     exit 1
   else
-    puts "Coverage gate PASSED"
+    puts 'Coverage gate PASSED'
     exit 0
   end
+end
+
+def count_non_scaffold_lines(file_coverage)
+  total = 0
+  file_coverage.each do |path, lines|
+    next if SCAFFOLD_FILES.any? { |base| path.end_with?(base) }
+
+    line_data = lines.is_a?(Hash) ? lines['lines'] : lines
+    next unless line_data.is_a?(Array)
+
+    line_data.each { |hit| total += 1 unless hit.nil? }
+  end
+  total
+end
+
+def count_coverage(folder_files)
+  total_lines = 0
+  covered_lines = 0
+
+  folder_files.each_value do |lines|
+    line_data = lines.is_a?(Hash) ? lines['lines'] : lines
+    next unless line_data.is_a?(Array)
+
+    line_data.each do |hit|
+      next if hit.nil?
+
+      total_lines += 1
+      covered_lines += 1 if hit.positive?
+    end
+  end
+
+  [total_lines, covered_lines]
 end
 
 def exit_no_data

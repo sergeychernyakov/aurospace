@@ -247,6 +247,14 @@ gem install lefthook
 lefthook install
 ```
 
+### Run all checks locally
+
+```bash
+bin/ci
+```
+
+Runs RSpec, RuboCop, Brakeman, and bundle-audit. Same checks as CI pipeline.
+
 ---
 
 ## Testing Payments (YooKassa)

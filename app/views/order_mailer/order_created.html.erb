@@ -1,0 +1,12 @@
+<h1>Order Created</h1>
+
+<p>Hello <%= @user.name %>,</p>
+
+<p>Your order #<%= @order.id %> has been created successfully.</p>
+
+<p>
+  <strong>Amount:</strong> <%= @order.amount_cents / 100.0 %> <%= @order.currency %><br>
+  <strong>Status:</strong> <%= @order.status %>
+</p>
+
+<p>Thank you for your order!</p>

@@ -1,0 +1,10 @@
+Payment Received
+
+Hello <%= @user.name %>,
+
+Payment for your order #<%= @order.id %> has been received.
+
+Amount: <%= @order.amount_cents / 100.0 %> <%= @order.currency %>
+Paid at: <%= @order.paid_at&.strftime('%Y-%m-%d %H:%M') %>
+
+Thank you for your payment!

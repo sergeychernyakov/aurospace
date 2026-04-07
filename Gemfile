@@ -49,6 +49,9 @@ gem 'opentelemetry-sdk', '~> 1.4'
 # === Module boundaries ===
 gem 'packwerk', '~> 3.2'
 
+# === HTTP client ===
+gem 'faraday', '~> 2.9'
+
 # === Payments ===
 gem 'money-rails', '~> 1.15'
 gem 'yookassa', '~> 0.1'

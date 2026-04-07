@@ -21,6 +21,7 @@ module Orders
         order.update!(cancelled_at: Time.zone.now)
       end
 
+      SendOrderEmailJob.perform_later(order.id, 'order_cancelled')
       Success(order.reload)
     rescue AASM::InvalidTransition, Orders::InvalidTransitionError
       Failure(:invalid_transition)

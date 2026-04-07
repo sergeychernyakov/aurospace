@@ -1,0 +1,12 @@
+<h1>Order Cancelled</h1>
+
+<p>Hello <%= @user.name %>,</p>
+
+<p>Your order #<%= @order.id %> has been cancelled.</p>
+
+<p>
+  <strong>Amount:</strong> <%= @order.amount_cents / 100.0 %> <%= @order.currency %><br>
+  <strong>Cancelled at:</strong> <%= @order.cancelled_at&.strftime('%Y-%m-%d %H:%M') %>
+</p>
+
+<p>The amount has been returned to your account balance.</p>

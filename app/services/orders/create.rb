@@ -19,6 +19,8 @@ module Orders
         amount_cents: amount_cents,
         currency: currency,
       )
+
+      SendOrderEmailJob.perform_later(order.id, 'order_created')
       Success(order)
     end
   end

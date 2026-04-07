@@ -307,16 +307,51 @@ Specs (~22 examples).
 
 ---
 
-### PR 11: ActiveAdmin + Basic Auth `feat/activeadmin` [M]
+### PR 11: ActiveAdmin + Basic Auth + Dashboard `feat/activeadmin` [L]
 **Depends on:** PR 9. **Parallel with PR 10, 13.**
 
 HTTP Basic Auth via `ADMIN_USER` / `ADMIN_PASSWORD` from ENV.
 
-Resources: Orders (AASM status, cancel via service), Accounts, LedgerEntries, WebhookEvents, NotificationLogs, Dashboard.
+**Resources:** Orders (AASM status, cancel via service), Accounts, LedgerEntries, WebhookEvents, NotificationLogs.
 
-No direct balance/status editing. N+1 prevention.
+**No direct balance/status editing.** N+1 prevention with includes.
 
-Request specs (~12 examples).
+**Dashboard with charts (Chartkick + Groupdate):**
+
+1. **Business metrics:**
+   - Orders by status (pie chart)
+   - Orders created per day/week (line chart)
+   - Revenue over time (successful orders amount_cents, line chart)
+   - Average order amount trend
+   - Total balance across all accounts
+
+2. **Sidekiq monitoring:**
+   - Queue sizes (critical, default, mailers, low)
+   - Processed/failed jobs counters
+   - Retry queue size
+   - Worker busy/idle count
+   - Sidekiq Web UI mounted at `/admin/sidekiq`
+
+3. **Database statistics:**
+   - Table row counts (users, orders, accounts, ledger_entries, webhook_events, notification_logs)
+   - Table sizes (bytes)
+   - Database total size
+   - Active connections count
+   - Recent slow queries (if pg_stat_statements enabled)
+
+4. **Server health:**
+   - Memory usage (RSS)
+   - CPU load average
+   - Disk usage
+   - Ruby process info (PID, memory, GC stats)
+   - Uptime
+
+**Gems to add:**
+- `chartkick` --- charts in admin views
+- `groupdate` --- time-based grouping for SQL queries
+- `sidekiq` already installed, mount Sidekiq::Web under admin auth
+
+Request specs (~15 examples).
 
 ---
 
@@ -386,7 +421,7 @@ PR1 → PR2 → PR3 → PR4 → PR5 → PR6 → PR7 → PR8 → PR9 → PR10
 | 8 | API Controllers + rswag + OpenTelemetry | L | ~35 |
 | 9 | Jobs (sidekiq-unique-jobs) + Mailer | M | ~22 |
 | 10 | Integration Tests | M | ~20 |
-| 11 | ActiveAdmin + Basic Auth | M | ~12 |
+| 11 | ActiveAdmin + Dashboard (charts, Sidekiq, DB, server) | L | ~15 |
 | 12 | Seeds | S | ~2 |
 | 13 | Frontend Scaffold (demo-user mode) | L | ~8 |
 | 14 | Frontend Pages | M | ~8 |

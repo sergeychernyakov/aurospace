@@ -362,6 +362,18 @@ jobs:
       SECRET_KEY_BASE: test_secret_key_base_for_ci_only
     steps:
       - uses: actions/checkout@v4
+      - name: Create .env for Docker
+        run: |
+          cat > .env << EOF
+          RAILS_ENV=production
+          SECRET_KEY_BASE=test_ci_key_not_for_production
+          DATABASE_URL=postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
+          REDIS_URL=redis://redis:6379/0
+          YOOKASSA_SHOP_ID=test
+          YOOKASSA_SECRET_KEY=test
+          ADMIN_USER=admin
+          ADMIN_PASSWORD=password
+          EOF
       - name: Start services
         run: docker compose up -d --wait --wait-timeout 60
       - name: Healthcheck

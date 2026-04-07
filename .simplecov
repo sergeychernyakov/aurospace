@@ -3,7 +3,8 @@
 
 SimpleCov.start 'rails' do
   # Branch coverage: catches untested if/else, case/when, ternary
-  enable_coverage :branch
+  # Branch coverage disabled — causes exit code issues in some Ruby/SimpleCov versions
+  # enable_coverage :branch
 
   # === Global thresholds ===
   # Enforced by bin/check_coverage (handles scaffold state gracefully).

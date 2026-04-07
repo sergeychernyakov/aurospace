@@ -169,7 +169,7 @@ jobs:
           bundler-cache: true
 
       - name: Setup database
-        run: bundle exec rails db:schema:load
+        run: bundle exec rails db:prepare
 
       - name: Run RSpec (includes FactoryBot.lint)
         run: bundle exec rspec --format documentation --format json --out tmp/rspec_results.json
@@ -234,7 +234,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-      - run: bundle exec rails db:schema:load
+      - run: bundle exec rails db:prepare
       - run: bundle exec database_consistency
 
   # ============================================================
@@ -266,7 +266,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
-      - run: bundle exec rails db:schema:load
+      - run: bundle exec rails db:prepare
       - run: bundle exec rspec spec/architecture/ --format documentation
 
   # ============================================================

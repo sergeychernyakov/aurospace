@@ -10,9 +10,7 @@ RSpec.describe Account do
   describe 'associations' do
     it { is_expected.to belong_to(:user) }
 
-    it 'has_many ledger_entries (pending LedgerEntry model in PR 3)', pending: 'LedgerEntry model not yet created' do
-      expect(account).to have_many(:ledger_entries).dependent(:restrict_with_error)
-    end
+    it { is_expected.to have_many(:ledger_entries).dependent(:restrict_with_error) }
   end
 
   describe 'validations' do

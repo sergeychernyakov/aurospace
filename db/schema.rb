@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_07_100001) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_07_100005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,6 +23,46 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100001) do
     t.index ["user_id"], name: "index_accounts_on_user_id", unique: true
   end
 
+  create_table "ledger_entries", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "order_id", null: false
+    t.integer "entry_type", null: false
+    t.integer "amount_cents", null: false
+    t.string "currency", default: "RUB", null: false
+    t.string "reference"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_ledger_entries_on_account_id"
+    t.index ["order_id"], name: "index_ledger_entries_on_order_id"
+  end
+
+  create_table "notification_logs", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.string "mail_type", null: false
+    t.string "recipient", null: false
+    t.datetime "sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id", "mail_type"], name: "index_notification_logs_on_order_id_and_mail_type", unique: true
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "amount_cents", null: false
+    t.string "currency", default: "RUB", null: false
+    t.integer "status", default: 0, null: false
+    t.string "payment_provider"
+    t.string "external_payment_id"
+    t.datetime "paid_at"
+    t.datetime "cancelled_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_orders_on_status"
+    t.index ["user_id"], name: "index_orders_on_user_id"
+    t.check_constraint "amount_cents > 0", name: "orders_amount_cents_positive"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", null: false
     t.string "name", null: false
@@ -31,5 +71,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_07_100001) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  create_table "webhook_events", force: :cascade do |t|
+    t.string "provider", null: false
+    t.string "external_event_id", null: false
+    t.string "event_type", null: false
+    t.jsonb "payload", default: {}
+    t.datetime "processed_at"
+    t.string "status", default: "pending", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_event_id"], name: "index_webhook_events_on_external_event_id", unique: true
+    t.index ["provider"], name: "index_webhook_events_on_provider"
+  end
+
   add_foreign_key "accounts", "users"
+  add_foreign_key "ledger_entries", "accounts"
+  add_foreign_key "ledger_entries", "orders"
+  add_foreign_key "notification_logs", "orders"
+  add_foreign_key "orders", "users"
 end

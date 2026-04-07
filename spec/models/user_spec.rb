@@ -10,9 +10,7 @@ RSpec.describe User do
   describe 'associations' do
     it { is_expected.to have_one(:account).dependent(:destroy) }
 
-    it 'has_many orders (pending Order model in PR 3)', pending: 'Order model not yet created' do
-      expect(user).to have_many(:orders).dependent(:destroy)
-    end
+    it { is_expected.to have_many(:orders).dependent(:destroy) }
   end
 
   describe 'validations' do

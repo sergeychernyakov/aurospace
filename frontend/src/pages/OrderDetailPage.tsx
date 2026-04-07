@@ -36,7 +36,9 @@ export default function OrderDetailPage() {
       <div className="rounded-lg border border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Order #{order.id}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              Order #{order.id}
+            </h1>
             <div className="mt-2">
               <StatusBadge status={order.status} />
             </div>
@@ -74,13 +76,17 @@ export default function OrderDetailPage() {
           {order.payment_provider && (
             <div>
               <dt className="text-sm text-gray-500 dark:text-gray-400">Provider</dt>
-              <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">{order.payment_provider}</dd>
+              <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                {order.payment_provider}
+              </dd>
             </div>
           )}
           {order.external_payment_id && (
             <div>
               <dt className="text-sm text-gray-500 dark:text-gray-400">Payment ID</dt>
-              <dd className="mt-1 text-sm font-mono text-xs text-gray-600 dark:text-gray-300">{order.external_payment_id}</dd>
+              <dd className="mt-1 text-sm font-mono text-xs text-gray-600 dark:text-gray-300">
+                {order.external_payment_id}
+              </dd>
             </div>
           )}
         </dl>
@@ -152,7 +158,9 @@ export default function OrderDetailPage() {
                   <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                     <MoneyFormat cents={entry.amount_cents} currency={entry.currency} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{entry.reference ?? '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                    {entry.reference ?? '-'}
+                  </td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(entry.created_at).toLocaleString()}
                   </td>

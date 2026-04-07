@@ -66,8 +66,12 @@ export default function AccountPage() {
                   <td className="px-4 py-3 text-gray-100">
                     <MoneyFormat cents={entry.amount_cents} currency={entry.currency} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">#{entry.order_id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{entry.reference ?? '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                    #{entry.order_id}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                    {entry.reference ?? '-'}
+                  </td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(entry.created_at).toLocaleString()}
                   </td>

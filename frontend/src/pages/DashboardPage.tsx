@@ -70,12 +70,19 @@ export default function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Total Orders', value: statusCounts.total, color: 'text-gray-900 dark:text-gray-100' },
+          {
+            label: 'Total Orders',
+            value: statusCounts.total,
+            color: 'text-gray-900 dark:text-gray-100',
+          },
           { label: 'Successful', value: statusCounts.successful, color: 'text-green-400' },
           { label: 'Pending', value: statusCounts.payment_pending, color: 'text-yellow-400' },
           { label: 'Cancelled', value: statusCounts.cancelled, color: 'text-red-400' },
         ].map((card) => (
-          <div key={card.label} className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 p-4 shadow-sm">
+          <div
+            key={card.label}
+            className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 p-4 shadow-sm"
+          >
             <p className="text-sm text-gray-500 dark:text-gray-400">{card.label}</p>
             <p className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</p>
           </div>
@@ -101,7 +108,10 @@ export default function DashboardPage() {
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {recentOrders.map((order) => (
-                <tr key={order.id} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                <tr
+                  key={order.id}
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
                   <td className="px-4 py-3">
                     <Link
                       to={`/orders/${order.id}`}

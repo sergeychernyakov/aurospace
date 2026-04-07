@@ -48,7 +48,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <header className="border-b border-gray-200 bg-white shadow-sm border-gray-200 dark:border-gray-700 dark:bg-gray-800">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-8">
-            <Link to="/" className="cursor-pointer text-xl font-bold text-blue-600 dark:text-blue-400">
+            <Link
+              to="/"
+              className="cursor-pointer text-xl font-bold text-blue-600 dark:text-blue-400"
+            >
               AUROSPACE
             </Link>
             <nav className="flex gap-1">

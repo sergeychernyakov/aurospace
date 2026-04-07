@@ -37,11 +37,26 @@ ActiveAdmin.register_page 'Dashboard' do
           total_balance = Account.unscoped.sum(:balance_cents) / 100.0
 
           ul do
-            li { strong { 'Total Orders: ' }; text_node total_orders.to_s }
-            li { strong { 'Successful: ' }; text_node successful.to_s }
-            li { strong { 'Total Revenue: ' }; text_node "#{revenue} RUB" }
-            li { strong { 'Total Accounts: ' }; text_node total_accounts.to_s }
-            li { strong { 'Total Balance: ' }; text_node "#{total_balance} RUB" }
+            li do
+              strong { 'Total Orders: ' }
+              text_node total_orders.to_s
+            end
+            li do
+              strong { 'Successful: ' }
+              text_node successful.to_s
+            end
+            li do
+              strong { 'Total Revenue: ' }
+              text_node "#{revenue} RUB"
+            end
+            li do
+              strong { 'Total Accounts: ' }
+              text_node total_accounts.to_s
+            end
+            li do
+              strong { 'Total Balance: ' }
+              text_node "#{total_balance} RUB"
+            end
           end
         end
       end
@@ -63,7 +78,7 @@ ActiveAdmin.register_page 'Dashboard' do
           load_pct = [(load_1m / cores * 100).round, 100].min
 
           disk = `df -h / 2>/dev/null`.split("\n").last&.split || []
-          disk_cap = disk[4]&.to_i || 0 # capacity percentage
+          disk_cap = disk[4].to_i # capacity percentage
 
           # Gauge CSS helper
           gauge_html = lambda { |label, value_text, pct, color|
@@ -80,21 +95,46 @@ ActiveAdmin.register_page 'Dashboard' do
             HTML
           }
 
-          mem_color = mem_pct > 80 ? '#ef4444' : mem_pct > 60 ? '#f59e0b' : '#22c55e'
-          load_color = load_pct > 80 ? '#ef4444' : load_pct > 60 ? '#f59e0b' : '#22c55e'
-          disk_color = disk_cap > 90 ? '#ef4444' : disk_cap > 70 ? '#f59e0b' : '#22c55e'
+          mem_color = if mem_pct > 80
+                        '#ef4444'
+                      else
+                        mem_pct > 60 ? '#f59e0b' : '#22c55e'
+                      end
+          load_color = if load_pct > 80
+                         '#ef4444'
+                       else
+                         load_pct > 60 ? '#f59e0b' : '#22c55e'
+                       end
+          disk_color = if disk_cap > 90
+                         '#ef4444'
+                       else
+                         disk_cap > 70 ? '#f59e0b' : '#22c55e'
+                       end
 
           div do
             text_node gauge_html.call('Memory (RSS)', "#{rss_mb} MB", mem_pct, mem_color).html_safe
             text_node gauge_html.call('CPU Load', "#{load_1m} / #{cores} cores", load_pct, load_color).html_safe
-            text_node gauge_html.call('Disk', "#{disk[2] || '?'} / #{disk[1] || '?'} (#{disk_cap}%)", disk_cap, disk_color).html_safe
+            text_node gauge_html.call('Disk', "#{disk[2] || "?"} / #{disk[1] || "?"} (#{disk_cap}%)", disk_cap,
+                                      disk_color,).html_safe
           end
 
           ul style: 'margin-top:12px;' do
-            li { strong { 'Ruby: ' }; text_node "#{RUBY_VERSION} +YJIT" }
-            li { strong { 'Rails: ' }; text_node Rails.version }
-            li { strong { 'PID: ' }; text_node Process.pid.to_s }
-            li { strong { 'GC: ' }; text_node "#{GC.count} runs, #{GC.stat[:heap_allocated_pages]} pages" }
+            li do
+              strong { 'Ruby: ' }
+              text_node "#{RUBY_VERSION} +YJIT"
+            end
+            li do
+              strong { 'Rails: ' }
+              text_node Rails.version
+            end
+            li do
+              strong { 'PID: ' }
+              text_node Process.pid.to_s
+            end
+            li do
+              strong { 'GC: ' }
+              text_node "#{GC.count} runs, #{GC.stat[:heap_allocated_pages]} pages"
+            end
           end
         end
       end
@@ -104,19 +144,43 @@ ActiveAdmin.register_page 'Dashboard' do
           stats = Sidekiq::Stats.new
 
           ul do
-            li { strong { 'Processed: ' }; text_node stats.processed.to_s }
-            li { strong { 'Failed: ' }; text_node stats.failed.to_s }
-            li { strong { 'Enqueued: ' }; text_node stats.enqueued.to_s }
-            li { strong { 'Scheduled: ' }; text_node Sidekiq::ScheduledSet.new.size.to_s }
-            li { strong { 'Retry: ' }; text_node Sidekiq::RetrySet.new.size.to_s }
-            li { strong { 'Dead: ' }; text_node Sidekiq::DeadSet.new.size.to_s }
-            li { strong { 'Workers Busy: ' }; text_node Sidekiq::Workers.new.size.to_s }
+            li do
+              strong { 'Processed: ' }
+              text_node stats.processed.to_s
+            end
+            li do
+              strong { 'Failed: ' }
+              text_node stats.failed.to_s
+            end
+            li do
+              strong { 'Enqueued: ' }
+              text_node stats.enqueued.to_s
+            end
+            li do
+              strong { 'Scheduled: ' }
+              text_node Sidekiq::ScheduledSet.new.size.to_s
+            end
+            li do
+              strong { 'Retry: ' }
+              text_node Sidekiq::RetrySet.new.size.to_s
+            end
+            li do
+              strong { 'Dead: ' }
+              text_node Sidekiq::DeadSet.new.size.to_s
+            end
+            li do
+              strong { 'Workers Busy: ' }
+              text_node Sidekiq::Workers.new.size.to_s
+            end
           end
 
           h4 'Queues', style: 'margin-top: 12px; font-weight: 600;'
           ul do
             Sidekiq::Queue.all.each do |q|
-              li { strong { "#{q.name}: " }; text_node "#{q.size} jobs (#{q.latency.round(1)}s)" }
+              li do
+                strong { "#{q.name}: " }
+                text_node "#{q.size} jobs (#{q.latency.round(1)}s)"
+              end
             end
             li { text_node 'No queues' } if Sidekiq::Queue.all.empty?
           end
@@ -136,7 +200,12 @@ ActiveAdmin.register_page 'Dashboard' do
           ).rows
 
           ul do
-            rows.each { |row| li { strong { "#{row[0]}: " }; text_node "#{row[1]} rows" } }
+            rows.each do |row|
+              li do
+                strong { "#{row[0]}: " }
+                text_node "#{row[1]} rows"
+              end
+            end
           end
         rescue StandardError => e
           para "Unavailable: #{e.message}"
@@ -160,14 +229,28 @@ ActiveAdmin.register_page 'Dashboard' do
           ).rows.first&.first
 
           ul do
-            li { strong { 'Database: ' }; text_node db_name }
-            li { strong { 'Total Size: ' }; text_node db_size.to_s }
-            li { strong { 'Connections: ' }; text_node connections.to_s }
+            li do
+              strong { 'Database: ' }
+              text_node db_name
+            end
+            li do
+              strong { 'Total Size: ' }
+              text_node db_size.to_s
+            end
+            li do
+              strong { 'Connections: ' }
+              text_node connections.to_s
+            end
           end
 
           h4 'Table Sizes', style: 'margin-top: 12px; font-weight: 600;'
           ul do
-            table_sizes.each { |row| li { strong { "#{row[0]}: " }; text_node row[1].to_s } }
+            table_sizes.each do |row|
+              li do
+                strong { "#{row[0]}: " }
+                text_node row[1].to_s
+              end
+            end
           end
         rescue StandardError => e
           para "Unavailable: #{e.message}"

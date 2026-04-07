@@ -15,7 +15,7 @@ Bundler.require(*Rails.groups)
 
 module Aurospace
   class Application < Rails::Application
-    config.load_defaults 7.1
+    config.load_defaults 7.2
 
     config.api_only = true
     config.time_zone = 'Moscow'

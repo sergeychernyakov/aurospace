@@ -3,5 +3,6 @@
 # app/jobs/application_job.rb
 
 class ApplicationJob < ActiveJob::Base
-  retry_on StandardError, wait: :polynomially_longer, attempts: 3
+  # Individual jobs define their own retry policy.
+  # Do not retry programmer errors (NameError, TypeError, etc.) globally.
 end

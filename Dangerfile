@@ -16,8 +16,8 @@ has_test_changes = !git.modified_files.grep(%r{^spec/}).empty? ||
                    !git.added_files.grep(%r{^spec/}).empty?
 
 if has_app_changes && !has_test_changes
-  raise 'Code changes detected without corresponding test changes. ' \
-        'All app/ changes must have spec/ coverage.'
+  fail 'Code changes detected without corresponding test changes. ' \
+       'All app/ changes must have spec/ coverage.'
 end
 
 # === Critical zone changes need extra attention ===
@@ -71,9 +71,9 @@ end
 secrets_patterns = /\.(env|pem|key)$|credentials|secrets/
 leaked = (git.modified_files + git.added_files).grep(secrets_patterns)
 if leaked.any?
-  raise "Possible secrets/credentials files detected:\n" \
-        "#{leaked.map { |f| "- `#{f}`" }.join("\n")}\n\n" \
-        'Remove them from the commit immediately.'
+  fail "Possible secrets/credentials files detected:\n" \
+       "#{leaked.map { |f| "- `#{f}`" }.join("\n")}\n\n" \
+       'Remove them from the commit immediately.'
 end
 
 # === PR description ===

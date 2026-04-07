@@ -69,6 +69,12 @@ Metrics/AbcSize:
 
 # --- Style ---
 
+# Danger DSL uses `fail` as a method (not Kernel#raise).
+# RuboCop's SignalException cop rewrites it to `raise`, breaking Danger.
+Style/SignalException:
+  Exclude:
+    - 'Dangerfile'
+
 Style/Documentation:
   Enabled: false
 

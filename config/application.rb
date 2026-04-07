@@ -22,6 +22,7 @@ module Aurospace
     config.active_job.queue_adapter = :sidekiq
 
     config.autoload_paths << Rails.root.join('app', 'errors')
+    config.autoload_paths << Rails.root.join('lib')
 
     config.generators do |g|
       g.test_framework :rspec

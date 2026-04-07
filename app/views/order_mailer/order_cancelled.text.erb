@@ -1,0 +1,10 @@
+Order Cancelled
+
+Hello <%= @user.name %>,
+
+Your order #<%= @order.id %> has been cancelled.
+
+Amount: <%= @order.amount_cents / 100.0 %> <%= @order.currency %>
+Cancelled at: <%= @order.cancelled_at&.strftime('%Y-%m-%d %H:%M') %>
+
+The amount has been returned to your account balance.

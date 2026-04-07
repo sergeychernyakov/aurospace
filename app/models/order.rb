@@ -13,6 +13,10 @@ class Order < ApplicationRecord
 
   enum :status, { created: 0, payment_pending: 1, successful: 2, cancelled: 3 }
 
+  scope :stale_payment_pending, lambda { |threshold = 30.minutes|
+    where(status: :payment_pending).where(updated_at: ...threshold.ago)
+  }
+
   aasm column: :status, enum: true, whiny_persistence: true do
     state :created, initial: true
     state :payment_pending

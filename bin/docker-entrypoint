@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+# Run database migrations if needed
+if [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "puma" ]; then
+  echo "Running db:prepare..."
+  bundle exec rails db:prepare
+fi
+
+exec "$@"

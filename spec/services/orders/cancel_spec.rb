@@ -131,5 +131,15 @@ RSpec.describe Orders::Cancel do
         expect(LedgerEntry.count).to eq(0)
       end
     end
+
+    context 'when AASM raises unexpectedly inside transaction' do
+      it 'returns Failure(:invalid_transition)' do
+        allow(order).to receive(:may_cancel?).and_return(true)
+        err = AASM::InvalidTransition.allocate
+        allow(order).to receive(:cancel!).and_raise(err)
+        result = service.call(order: order)
+        expect(result.failure).to eq(:invalid_transition)
+      end
+    end
   end
 end

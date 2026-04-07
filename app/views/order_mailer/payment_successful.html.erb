@@ -1,0 +1,12 @@
+<h1>Payment Received</h1>
+
+<p>Hello <%= @user.name %>,</p>
+
+<p>Payment for your order #<%= @order.id %> has been received.</p>
+
+<p>
+  <strong>Amount:</strong> <%= @order.amount_cents / 100.0 %> <%= @order.currency %><br>
+  <strong>Paid at:</strong> <%= @order.paid_at&.strftime('%Y-%m-%d %H:%M') %>
+</p>
+
+<p>Thank you for your payment!</p>

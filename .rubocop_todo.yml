@@ -18,12 +18,20 @@ Metrics/BlockLength:
 RSpec/DescribeClass:
   Exclude:
     - 'spec/architecture/architecture_spec.rb'
+    - 'spec/integration/**/*'
 
 # Offense count: 1
 # Configuration parameters: Max, CountAsOne.
 RSpec/ExampleLength:
   Exclude:
     - 'spec/architecture/architecture_spec.rb'
+    - 'spec/integration/**/*'
+
+# Offense count: 1
+# Configuration parameters: Max.
+RSpec/MultipleExpectations:
+  Exclude:
+    - 'spec/integration/**/*'
 
 # Offense count: 1
 # Configuration parameters: AllowedPatterns.

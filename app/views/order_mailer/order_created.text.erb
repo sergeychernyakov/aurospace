@@ -1,0 +1,10 @@
+Order Created
+
+Hello <%= @user.name %>,
+
+Your order #<%= @order.id %> has been created successfully.
+
+Amount: <%= @order.amount_cents / 100.0 %> <%= @order.currency %>
+Status: <%= @order.status %>
+
+Thank you for your order!

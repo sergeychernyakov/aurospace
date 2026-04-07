@@ -49,11 +49,16 @@ RUN groupadd --system app && \
 COPY --from=build --chown=app:app /usr/local/bundle /usr/local/bundle
 COPY --from=build --chown=app:app /app /app
 
+RUN mkdir -p /app/tmp/pids /app/tmp/cache /app/log && \
+    chown -R app:app /app/tmp /app/log
+
 USER app
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+ENTRYPOINT ["/app/bin/docker-entrypoint"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/up || exit 1
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]

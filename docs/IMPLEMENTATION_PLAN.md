@@ -226,7 +226,7 @@ Specs (target 95%+, ~18 examples).
 
 ---
 
-### PR 6: Orders::StartPayment + Orders::MarkSuccessful `feat/order-payment-services` [M]
+### PR 6: Orders::StartPayment + Orders::MarkSuccessful `feat/order-payment-services` [M] --- DONE
 **Depends on:** PR 5
 
 **StartPayment:** AASM `order.may_start_payment?`, `order.start_payment!`. Injectable payment result param.
@@ -237,7 +237,7 @@ Specs (target 95%+, ~18 examples).
 
 ---
 
-### PR 7: YooKassa Integration `feat/yookassa-integration` [L]
+### PR 7: YooKassa Integration `feat/yookassa-integration` [L] --- DONE
 **Depends on:** PR 6
 
 **lib/clients/yookassa_client.rb:** create/get payment, Idempotence-Key header.
@@ -250,7 +250,7 @@ All HTTP mocked via WebMock/VCR. Specs (~22 examples).
 
 ---
 
-### PR 8: API Controllers + rswag + OpenTelemetry `feat/api-controllers` [L]
+### PR 8: API Controllers + rswag + OpenTelemetry `feat/api-controllers` [L] --- DONE
 **Depends on:** PR 7
 
 **OpenTelemetry added HERE** (not PR 1) --- now there are requests, DB, Redis, HTTP to trace.
@@ -273,7 +273,7 @@ Request specs + rswag specs (~35 examples).
 
 ---
 
-### PR 9: Jobs (sidekiq-unique-jobs) + Mailer `feat/async-email` [M]
+### PR 9: Jobs (sidekiq-unique-jobs) + Mailer `feat/async-email` [M] --- DONE
 **Depends on:** PR 8
 
 **sidekiq-unique-jobs** prevents duplicate execution:
@@ -294,7 +294,7 @@ Specs (~22 examples).
 
 ---
 
-### PR 10: Integration Tests `test/integration-flows` [M]
+### PR 10: Integration Tests `test/integration-flows` [M] --- DONE
 **Depends on:** PR 9
 
 - **Payment flow:** create -> pay -> webhook -> success

@@ -36,9 +36,10 @@ User pays for an order via YooKassa. Successful payment = **credit to user's acc
 | Order cancelled | `reversal` | balance decreases (compensating entry) |
 
 **Invariants:**
-- `balance_cents` is NEVER updated directly
-- Every change creates an immutable `LedgerEntry`
+- `balance_cents` is a cached aggregate and must remain consistent with the sum of all ledger entries for that account
+- Every balance-affecting operation must create a corresponding immutable `LedgerEntry` within the same database transaction
 - Reversals are compensating entries, not deletions
+- All money-affecting operations acquire a pessimistic lock on the account row before applying changes
 
 ---
 
@@ -175,9 +176,11 @@ Factories + model specs (~10 examples).
 
 **Order with AASM:**
 - `status` via AASM: `created` -> `payment_pending` -> `successful` -> `cancelled`
+- Only `successful` can be cancelled (cancellation = compensating reversal)
 - Events: `start_payment!`, `mark_successful!`, `cancel!`
 - `amount_cents` NOT NULL, `currency`, `payment_provider`, `external_payment_id`, `paid_at`, `cancelled_at`
 - Indexes on `user_id`, `status`
+- CHECK constraint: `amount_cents > 0`
 
 **LedgerEntry:**
 - FK `account_id`, `order_id` (NOT NULL), `entry_type` enum, `amount_cents` NOT NULL

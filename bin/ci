@@ -121,7 +121,7 @@ echo ""
 echo -e "${BOLD}  4. Backend: DB Quality${NC}"
 echo "  ───────────────────────────────────────────"
 if $HAS_BACKEND; then
-  run_check "database_consistency"         bundle exec database_consistency
+  run_check "database_consistency"         env RAILS_ENV=test bundle exec database_consistency
 else
   run_skip "database_consistency"          "(no Gemfile.lock)"
 fi

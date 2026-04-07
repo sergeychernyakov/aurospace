@@ -1,6 +1,27 @@
 # lefthook.yml
 # Install: gem install lefthook && lefthook install
 
+post-checkout:
+  commands:
+    branch-naming:
+      run: |
+        BRANCH=$(git branch --show-current)
+        # Allow main and HEAD (detached)
+        if [ "$BRANCH" = "main" ] || [ -z "$BRANCH" ]; then
+          exit 0
+        fi
+        if ! echo "$BRANCH" | grep -qE '^(feat|fix|refactor|test|docs|chore|security|db|perf|hotfix)/[a-z0-9][a-z0-9-]+$'; then
+          echo ""
+          echo "WARNING: Branch name '$BRANCH' does not follow convention."
+          echo ""
+          echo "Format:  <type>/<short-description>"
+          echo "Example: feat/order-cancellation"
+          echo ""
+          echo "Types: feat fix refactor test docs chore security db perf hotfix"
+          echo "See: docs/COMMIT_CONVENTION.md"
+          echo ""
+        fi
+
 pre-commit:
   parallel: true
   commands:

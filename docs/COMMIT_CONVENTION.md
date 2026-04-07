@@ -166,10 +166,87 @@ feat(orders): implement order cancellation service that creates a reversal ledge
 
 ---
 
+## Branch Naming
+
+### Format
+
+```
+<type>/<scope>-<short-description>
+```
+
+All lowercase, words separated by hyphens.
+
+### Types
+
+| Prefix | When to Use | Example |
+|--------|------------|---------|
+| `feat/` | New feature | `feat/order-cancellation` |
+| `fix/` | Bug fix | `fix/duplicate-webhook-processing` |
+| `refactor/` | Code restructuring | `refactor/extract-ledger-service` |
+| `test/` | Adding/fixing tests only | `test/integration-payment-flow` |
+| `docs/` | Documentation changes | `docs/implementation-plan` |
+| `chore/` | Build, CI, configs, deps | `chore/update-rubocop` |
+| `security/` | Security fix or hardening | `security/fix-csrf-webhook` |
+| `db/` | Database migrations only | `db/add-check-constraints` |
+| `perf/` | Performance improvement | `perf/optimize-ledger-query` |
+| `hotfix/` | Urgent production fix | `hotfix/balance-calculation` |
+
+### Scope (optional, after type)
+
+Use the same scopes as commits when helpful:
+
+```
+feat/orders-cancellation
+feat/accounts-ledger-service
+feat/payments-yookassa-integration
+feat/admin-activeadmin-panel
+feat/frontend-scaffold
+```
+
+### Rules
+
+- **Lowercase only** --- `feat/Order-Cancel` is wrong
+- **Hyphens, not underscores** --- `feat/order-cancel` not `feat/order_cancel`
+- **Short and descriptive** --- max ~40 chars after prefix
+- **No issue numbers alone** --- `fix/123` is bad, `fix/duplicate-webhook-123` is ok
+- **Base branch:** always branch from `main`
+- **One PR per branch** --- don't reuse branches after merge
+
+### Examples
+
+```bash
+# Good
+feat/rails-scaffold
+feat/user-account-models
+feat/order-ledger-models
+feat/accounts-ledger-service
+feat/order-create-cancel
+feat/order-payment-services
+feat/yookassa-integration
+feat/api-controllers
+feat/async-email
+test/integration-flows
+feat/activeadmin
+feat/seed-data
+feat/frontend-scaffold
+feat/frontend-pages
+feat/production-deploy
+
+# Bad
+feature/Rails_Scaffold          # wrong prefix, uppercase, underscores
+my-branch                       # no type prefix
+feat/implement-order-cancellation-service-with-ledger-reversal  # too long
+123-fix                         # issue number only
+```
+
+---
+
 ## Git Workflow
 
 ```bash
-# Feature branch
+# Create branch from main
+git checkout main
+git pull origin main
 git checkout -b feat/order-cancellation
 
 # Atomic commits (one logical change per commit)

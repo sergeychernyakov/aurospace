@@ -128,6 +128,47 @@ Start with Packwerk config + architecture specs in PR 1. Enforce incrementally a
 
 ---
 
+## Soft Delete (discard)
+
+Financial data must never be physically deleted. We use `discard` gem (not `paranoia`):
+- Explicit API: `discard` / `undiscard`, does not override `destroy`
+- No magic, no conflicts with `dependent: :destroy` or unique indexes
+- Works via `discarded_at` timestamp column + default scope
+
+**Models with discard:**
+
+| Model | Why |
+|-------|-----|
+| `Order` | Cancelled orders must be preserved for audit |
+| `User` | User data retained for financial history |
+| `Account` | Account history must survive user removal |
+| `WebhookEvent` | All incoming events are audit trail |
+| `NotificationLog` | Email history preserved |
+
+**Models WITHOUT discard:**
+- `LedgerEntry` --- already immutable (no update, no destroy). Physical delete prohibited at model level.
+
+**Usage:**
+```ruby
+class Order < ApplicationRecord
+  include Discard::Model
+  default_scope -> { kept }  # only non-discarded by default
+end
+
+# Soft delete:
+order.discard   # sets discarded_at
+
+# Admin can see all:
+Order.with_discarded
+Order.discarded
+```
+
+**Gem:** `discard ~> 1.3`
+
+**Migration:** `add_column :orders, :discarded_at, :datetime` + index (added in PR 11 alongside ActiveAdmin).
+
+---
+
 ## PR Sequence
 
 ### PR 1: Rails Scaffold `feat/rails-scaffold` [L]
@@ -346,9 +387,16 @@ HTTP Basic Auth via `ADMIN_USER` / `ADMIN_PASSWORD` from ENV.
    - Ruby process info (PID, memory, GC stats)
    - Uptime
 
+**Soft delete (discard):**
+- Migration: add `discarded_at` (datetime, indexed) to orders, users, accounts, webhook_events, notification_logs
+- Add `include Discard::Model` + `default_scope -> { kept }` to each model
+- Admin shows discarded records via `with_discarded` scope
+- Architecture spec: verify `LedgerEntry` does NOT include Discard
+
 **Gems to add:**
 - `chartkick` --- charts in admin views
 - `groupdate` --- time-based grouping for SQL queries
+- `discard` --- soft delete
 - `sidekiq` already installed, mount Sidekiq::Web under admin auth
 
 Request specs (~15 examples).

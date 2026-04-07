@@ -14,79 +14,79 @@ RSpec.describe 'Admin Pages' do
 
   describe 'authentication' do
     it 'requires basic auth' do
-      get '/admin'
+      get '/a'
       expect(response).to have_http_status(:unauthorized)
     end
 
     it 'allows access with valid credentials' do
-      get '/admin', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
     end
   end
 
-  describe 'GET /admin (dashboard)' do
+  describe 'GET /a (dashboard)' do
     it 'renders the dashboard' do
-      get '/admin', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('AUROSPACE Dashboard')
+      expect(response.body).to include('Dashboard')
     end
   end
 
-  describe 'GET /admin/orders' do
+  describe 'GET /a/orders' do
     before { create(:order, user: user) }
 
     it 'renders the orders index' do
-      get '/admin/orders', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/orders', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Orders')
     end
   end
 
-  describe 'GET /admin/orders/:id' do
+  describe 'GET /a/orders/:id' do
     let!(:order) { create(:order, user: user) }
 
     it 'renders the order show page' do
-      get "/admin/orders/#{order.id}", headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get "/a/orders/#{order.id}", headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(order.id.to_s)
     end
   end
 
-  describe 'GET /admin/accounts' do
+  describe 'GET /a/accounts' do
     before { user }
 
     it 'renders the accounts index' do
-      get '/admin/accounts', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/accounts', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Accounts')
     end
   end
 
-  describe 'GET /admin/ledger_entries' do
+  describe 'GET /a/ledger_entries' do
     it 'renders the ledger entries index' do
-      get '/admin/ledger_entries', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/ledger_entries', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Ledger Entries')
     end
   end
 
-  describe 'GET /admin/webhook_events' do
+  describe 'GET /a/webhook_events' do
     it 'renders the webhook events index' do
-      get '/admin/webhook_events', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/webhook_events', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Webhook Events')
     end
   end
 
-  describe 'GET /admin/notification_logs' do
+  describe 'GET /a/notification_logs' do
     it 'renders the notification logs index' do
-      get '/admin/notification_logs', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/notification_logs', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Notification Logs')
     end
   end
 
-  describe 'POST /admin/orders/:id/cancel_order' do
+  describe 'POST /a/orders/:id/cancel_order' do
     let!(:order) { create(:order, :successful, user: user) }
 
     before do
@@ -101,17 +101,17 @@ RSpec.describe 'Admin Pages' do
     end
 
     it 'cancels a successful order via service' do
-      post "/admin/orders/#{order.id}/cancel_order",
+      post "/a/orders/#{order.id}/cancel_order",
            headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
-      expect(response).to redirect_to(admin_order_path(order))
+      expect(response).to redirect_to(a_order_path(order))
       expect(order.reload.status).to eq('cancelled')
     end
 
     it 'redirects with alert when order cannot be cancelled' do
       order = create(:order, user: user)
-      post "/admin/orders/#{order.id}/cancel_order",
+      post "/a/orders/#{order.id}/cancel_order",
            headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
-      expect(response).to redirect_to(admin_order_path(order))
+      expect(response).to redirect_to(a_order_path(order))
       expect(flash[:alert]).to include('Cannot cancel')
     end
   end
@@ -120,7 +120,7 @@ RSpec.describe 'Admin Pages' do
     it 'shows discarded orders in admin' do
       order = create(:order, user: user)
       order.discard
-      get '/admin/orders', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/orders', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(order.id.to_s)
     end
@@ -128,9 +128,21 @@ RSpec.describe 'Admin Pages' do
     it 'shows discarded webhook events in admin' do
       event = create(:webhook_event)
       event.discard
-      get '/admin/webhook_events', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      get '/a/webhook_events', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(event.external_event_id)
+    end
+  end
+
+  describe 'read-only restrictions' do
+    it 'does not expose new order action' do
+      get '/a/orders/new', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'does not expose new account action' do
+      get '/a/accounts/new', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

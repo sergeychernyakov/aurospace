@@ -149,11 +149,32 @@ RSpec.describe Yookassa::ProcessWebhook do
       end
     end
 
-    context 'with unknown event type' do
+    context 'with refund.succeeded event' do
       let(:params) do
         {
           'event' => 'refund.succeeded',
-          'object' => { 'id' => 'ref_123', 'status' => 'succeeded' },
+          'object' => { 'id' => 'ref_123', 'status' => 'succeeded', 'payment_id' => 'pay_abc' },
+        }
+      end
+
+      it 'returns Success(:refund_logged)' do
+        result = service.call(payload: params)
+        expect(result).to be_success
+        expect(result.value!).to eq(:refund_logged)
+      end
+
+      it 'creates a WebhookEvent record' do
+        expect {
+          service.call(payload: params)
+        }.to change(WebhookEvent, :count).by(1)
+      end
+    end
+
+    context 'with unknown event type' do
+      let(:params) do
+        {
+          'event' => 'capture.succeeded',
+          'object' => { 'id' => 'cap_123', 'status' => 'succeeded' },
         }
       end
 

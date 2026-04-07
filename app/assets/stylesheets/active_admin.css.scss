@@ -1,3 +1,154 @@
 // active_admin.css.scss
 @import "active_admin/mixins";
 @import "active_admin/base";
+
+// === Variables ===
+$dark-bg: #111827;
+$dark-surface: #1f2937;
+$dark-border: #374151;
+$dark-text: #f3f4f6;
+$dark-text-muted: #9ca3af;
+$dark-accent: #3b82f6;
+$dark-accent-hover: #60a5fa;
+$dark-header: #1e293b;
+
+// === DARK THEME (only when html.dark) ===
+html.dark {
+
+  body.active_admin {
+    background-color: $dark-bg;
+    color: $dark-text;
+  }
+
+  #header {
+    background: $dark-header;
+    border-bottom: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    h1 { color: $dark-text; }
+    ul.tabs > li {
+      a { color: $dark-text-muted; &:hover { color: white; background: rgba(255,255,255,0.1); } }
+      &.current > a { color: white; background: $dark-accent; border-radius: 6px; }
+    }
+  }
+
+  #title_bar {
+    background: $dark-bg !important;
+    background-image: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    h2 { color: $dark-text !important; font-style: normal !important; text-shadow: none !important; }
+  }
+
+  .panel {
+    background: $dark-surface;
+    border: none !important;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+
+    h3 {
+      background: $dark-surface !important;
+      background-image: none !important;
+      color: $dark-text !important;
+      border: none !important;
+      border-bottom: 1px solid $dark-border !important;
+      font-style: normal !important;
+      text-shadow: none !important;
+    }
+    .panel_contents { padding: 16px; }
+  }
+
+  table, table.index_table {
+    border: none;
+    th {
+      background: $dark-surface !important;
+      color: $dark-text-muted !important;
+      border: 1px solid $dark-border !important;
+      font-style: normal !important;
+    }
+    td {
+      background: $dark-bg !important;
+      color: $dark-text !important;
+      border: 1px solid $dark-border !important;
+    }
+    tr:nth-child(even) td { background: $dark-surface !important; }
+    tr:hover td { background: rgba(59, 130, 246, 0.1) !important; }
+  }
+
+  .attributes_table {
+    th { background: $dark-surface !important; color: $dark-text-muted !important; border-color: $dark-border !important; }
+    td { background: transparent !important; color: $dark-text !important; border-color: $dark-border !important; }
+  }
+
+  #sidebar {
+    background: transparent;
+    .panel { background: $dark-surface; border-color: $dark-border; }
+  }
+
+  #active_admin_content { background: $dark-bg; }
+
+  a { color: $dark-accent; }
+  a:hover { color: $dark-accent-hover; }
+  .breadcrumb { color: $dark-text-muted; a { color: $dark-text-muted; } }
+
+  input, select, textarea {
+    background: $dark-bg;
+    color: $dark-text;
+    border: 1px solid $dark-border;
+    &:focus { border-color: $dark-accent; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+  }
+
+  .filter_form {
+    background: $dark-surface;
+    border: 1px solid $dark-border;
+    border-radius: 8px;
+    label { color: $dark-text; }
+  }
+
+  .status_tag { border-radius: 12px; }
+
+  nav.pagination {
+    span, a { color: $dark-text-muted; }
+    .current { background: $dark-accent; color: white; border-radius: 4px; }
+  }
+
+  .flash {
+    border: none; border-radius: 8px;
+    &.flash_notice { background: rgba(59, 130, 246, 0.15); color: $dark-accent-hover; }
+    &.flash_error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+  }
+
+  .active_admin_page .panel ul {
+    list-style: none; padding: 0; margin: 0;
+    li { padding: 8px 0; border-bottom: 1px solid $dark-border; font-size: 14px;
+      &:last-child { border-bottom: none; }
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    background-image: none !important;
+    text-shadow: none !important;
+  }
+
+  // Status tags — readable in dark
+  .status_tag {
+    border-radius: 12px !important;
+    padding: 3px 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+
+    &.yes, &.ok, &.successful, &.processed { background: #166534 !important; color: #bbf7d0 !important; }
+    &.payment_pending, &.pending, &.warning { background: #854d0e !important; color: #fef08a !important; }
+    &.no, &.cancelled, &.failed, &.error { background: #991b1b !important; color: #fecaca !important; }
+    &.created { background: #1e40af !important; color: #bfdbfe !important; }
+  }
+
+  // EMPTY labels
+  .empty { color: $dark-text-muted !important; }
+
+} // end html.dark
+
+// Hide breadcrumb globally (shows ugly "A /" from namespace)
+.breadcrumb { display: none !important; }

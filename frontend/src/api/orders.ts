@@ -32,14 +32,23 @@ export function useCreateOrder() {
   });
 }
 
+interface PayResponse {
+  order: Order;
+  confirmation_url: string;
+}
+
 export function usePayOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (orderId: number) => api.post<Order>(`/orders/${orderId}/pay`),
-    onSuccess: () => {
+    mutationFn: (orderId: number) => api.post<PayResponse>(`/orders/${orderId}/pay`),
+    onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: ['orders'] });
       void queryClient.invalidateQueries({ queryKey: ['order'] });
       void queryClient.invalidateQueries({ queryKey: ['account'] });
+      // Redirect to YooKassa payment page
+      if (data.confirmation_url) {
+        window.location.href = data.confirmation_url;
+      }
     },
   });
 }

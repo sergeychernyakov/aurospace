@@ -5,6 +5,8 @@
 ActiveAdmin.register Order do
   menu priority: 2
 
+  actions :index, :show
+
   includes :user
 
   scope_to(nil, association_method: :unscoped)
@@ -82,16 +84,16 @@ ActiveAdmin.register Order do
     result = Orders::Cancel.new.call(order: order)
     case result
     in Dry::Monads::Success(_)
-      redirect_to admin_order_path(order), notice: 'Order cancelled successfully.'
+      redirect_to a_order_path(order), notice: 'Order cancelled successfully.'
     in Dry::Monads::Failure(error)
-      redirect_to admin_order_path(order), alert: "Cannot cancel order: #{error}"
+      redirect_to a_order_path(order), alert: "Cannot cancel order: #{error}"
     end
   end
 
   action_item :cancel, only: :show do
     if resource.successful?
-      link_to 'Cancel Order', cancel_order_admin_order_path(resource), method: :post,
-                                                                       data: { confirm: 'Are you sure?' }
+      link_to 'Cancel Order', cancel_order_a_order_path(resource), method: :post,
+                                                                   data: { confirm: 'Are you sure?' }
     end
   end
 end

@@ -25,7 +25,7 @@ class HealthController < ActionController::API
       redis: check_redis,
     }
 
-    healthy = checks.values.all? { |v| v == 'ok' }
+    healthy = checks.values.all?('ok')
 
     render json: {
       status: healthy ? 'ok' : 'degraded',
@@ -40,13 +40,15 @@ class HealthController < ActionController::API
     ActiveRecord::Base.connection.execute('SELECT 1')
     'ok'
   rescue StandardError => e
-    "error: #{e.message}"
+    Rails.logger.error("Health check database failed: #{e.message}")
+    'error'
   end
 
   def check_redis
     Redis.new(url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')).ping
     'ok'
   rescue StandardError => e
-    "error: #{e.message}"
+    Rails.logger.error("Health check redis failed: #{e.message}")
+    'error'
   end
 end

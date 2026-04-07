@@ -10,7 +10,7 @@
 
 if defined?(StrongMigrations)
   # Mark existing migrations as safe
-  StrongMigrations.start_after = 20260407000000
+  StrongMigrations.start_after = 20_260_407_000_000
 
   # Custom error messages
   StrongMigrations.error_messages[:remove_column] =

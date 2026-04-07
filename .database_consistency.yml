@@ -25,6 +25,5 @@ DatabaseConsistencyCheckers:
     enabled: true
   ThreeStateBooleanChecker:
     enabled: true
-  # TODO: remove after PR 3 adds Order and LedgerEntry models
   MissingAssociationClassChecker:
-    enabled: false
+    enabled: true

@@ -4,6 +4,7 @@
 
 ActiveAdmin.setup do |config|
   config.site_title = 'AUROSPACE Admin'
+  config.default_namespace = :a
   config.authentication_method = :authenticate_admin!
   config.current_user_method = false
   config.logout_link_path = false

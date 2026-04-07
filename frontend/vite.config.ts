@@ -17,7 +17,10 @@ export default defineConfig({
       '/accounts': 'http://localhost:3000',
       '/webhooks': 'http://localhost:3000',
       '/api-docs': 'http://localhost:3000',
-      '/admin': 'http://localhost:3000',
+      '/a': 'http://localhost:3000',
+      '/assets': 'http://localhost:3000',
+      '/up': 'http://localhost:3000',
+      '/health': 'http://localhost:3000',
     },
   },
   build: {

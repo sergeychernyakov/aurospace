@@ -12,7 +12,7 @@ test.describe('Healthcheck', () => {
   });
 
   test('admin panel responds', async ({ request }) => {
-    const response = await request.get('/admin', {
+    const response = await request.get('/a', {
       headers: {
         Authorization: `Basic ${Buffer.from('admin:password').toString('base64')}`,
       },

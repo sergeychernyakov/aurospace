@@ -15,8 +15,8 @@ docker compose exec app bundle exec rails db:prepare db:seed
 |--------|-----|-------|
 | React | http://localhost:5173 | --- |
 | API | http://localhost:3000 | --- |
-| Админка | http://localhost:3000/admin | admin / password |
-| Sidekiq | http://localhost:3000/admin/sidekiq | admin / password |
+| Админка | http://localhost:3000/a | a / pass |
+| Sidekiq | http://localhost:3000/a/sidekiq | a / pass |
 
 ---
 
@@ -99,7 +99,7 @@ docker compose exec app bundle exec rails db:prepare db:seed
 
 ## 8. Админка
 
-- [ ] Открыть http://localhost:3000/admin, ввести admin / password
+- [ ] Открыть http://localhost:3000/a, ввести a / pass
 - [ ] **Dashboard:** видны графики (заказы по статусам, revenue, Sidekiq, таблицы БД)
 - [ ] **Orders:** все заказы в списке, фильтр по статусу работает
 - [ ] Открыть заказ — видны ledger entries, детали, даты

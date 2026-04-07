@@ -1,0 +1,135 @@
+openapi: 3.0.1
+info:
+  title: AUROSPACE Orders API
+  version: v1
+  description: Payment workflow API for AUROSPACE Orders Demo
+servers:
+  - url: /
+paths:
+  /orders:
+    get:
+      summary: List orders
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of orders
+    post:
+      summary: Create order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                amount_cents:
+                  type: integer
+                currency:
+                  type: string
+                  default: RUB
+              required:
+                - user_id
+                - amount_cents
+      responses:
+        '201':
+          description: Order created
+        '422':
+          description: Validation error
+  /orders/{id}:
+    get:
+      summary: Show order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order details with ledger entries
+        '404':
+          description: Not found
+  /orders/{id}/pay:
+    post:
+      summary: Initiate payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Payment initiated (confirmation_url returned)
+        '422':
+          description: Invalid transition
+  /orders/{id}/cancel:
+    post:
+      summary: Cancel order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order cancelled with reversal
+        '422':
+          description: Invalid transition
+  /accounts/{id}:
+    get:
+      summary: Show account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Account with balance and ledger entries
+  /webhooks/yookassa:
+    post:
+      summary: YooKassa webhook
+      description: Receives payment events from YooKassa. IP-validated in production.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                object:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+      responses:
+        '200':
+          description: Webhook accepted
+        '400':
+          description: Malformed payload
+  /up:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: App is running
+  /health:
+    get:
+      summary: Readiness probe
+      responses:
+        '200':
+          description: App + DB + Redis healthy
+        '503':
+          description: Degraded

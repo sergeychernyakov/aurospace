@@ -11,7 +11,9 @@ end
 
 Rails.application.routes.draw do
   ActiveAdmin.routes(self)
-  mount Sidekiq::Web => '/admin/sidekiq'
+  mount Sidekiq::Web => '/a/sidekiq'
+  mount Rswag::Ui::Engine => '/api-docs'
+  mount Rswag::Api::Engine => '/api-docs'
 
   draw(:health)
 

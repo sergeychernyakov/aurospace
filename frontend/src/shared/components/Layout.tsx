@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 
 const EXTERNAL_LINKS = [
   { href: '/api-docs', label: 'API Docs' },
-  { href: '/admin', label: 'Admin Panel' },
+  { href: '/a', label: 'Admin Panel' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

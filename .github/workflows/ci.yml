@@ -1,0 +1,576 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  RAILS_ENV: test
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/aurospace_test
+  REDIS_URL: redis://localhost:6379/1
+
+jobs:
+  # ============================================================
+  # BOOTSTRAP CHECK
+  # ============================================================
+  # Backend and frontend jobs require their respective scaffolds.
+  # This job sets output flags so downstream jobs can skip cleanly
+  # instead of failing with misleading errors.
+
+  bootstrap:
+    name: Bootstrap Check
+    runs-on: ubuntu-latest
+    outputs:
+      has_backend: ${{ steps.check.outputs.has_backend }}
+      has_frontend: ${{ steps.check.outputs.has_frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ -f Gemfile.lock ] && [ -f config/routes.rb ]; then
+            echo "has_backend=true" >> $GITHUB_OUTPUT
+            echo "Backend scaffold detected"
+          else
+            echo "has_backend=false" >> $GITHUB_OUTPUT
+            echo "::warning::Backend scaffold not found (Gemfile.lock, config/routes.rb). Backend jobs will be skipped."
+          fi
+          if [ -f frontend/package-lock.json ]; then
+            echo "has_frontend=true" >> $GITHUB_OUTPUT
+            echo "Frontend scaffold detected"
+          else
+            echo "has_frontend=false" >> $GITHUB_OUTPUT
+            echo "::warning::Frontend scaffold not found (frontend/package-lock.json). Frontend jobs will be skipped."
+          fi
+
+  # ============================================================
+  # BACKEND: Lint
+  # ============================================================
+
+  rubocop:
+    name: RuboCop
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec rubocop --parallel
+
+  # ============================================================
+  # BACKEND: Security
+  # ============================================================
+
+  brakeman:
+    name: Brakeman
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec brakeman -q --no-pager --ensure-latest
+
+  bundle-audit:
+    name: Bundle Audit
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec bundle-audit check --update
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan for secrets
+        run: |
+          FOUND=0
+          # Check for private keys (exclude CI/hook configs that contain the pattern itself)
+          MATCHES=$(grep -rn "BEGIN.*PRIVATE KEY" --include="*.rb" --include="*.yml" --include="*.json" --include="*.env" . 2>/dev/null \
+            | grep -v ".github/workflows/" \
+            | grep -v "lefthook.yml" \
+            | grep -v "# Check for" \
+            || true)
+          if [ -n "$MATCHES" ]; then
+            echo "$MATCHES"
+            echo "::error::Private key found in source code"
+            FOUND=1
+          fi
+          # Check for hardcoded credentials (exclude test/config files)
+          CRED_MATCHES=$(grep -rn -E "(password|secret|api_key|token)\s*[:=]\s*['\"][^'\"]{8,}" --include="*.rb" --include="*.yml" . 2>/dev/null \
+            | grep -v "spec/" \
+            | grep -v "config/initializers/filter" \
+            | grep -v ".rubocop" \
+            | grep -v ".github/workflows/" \
+            | grep -v "lefthook.yml" \
+            || true)
+          if [ -n "$CRED_MATCHES" ]; then
+            echo "$CRED_MATCHES"
+            echo "::warning::Possible hardcoded credential detected"
+          fi
+          exit $FOUND
+
+  # ============================================================
+  # BACKEND: Tests + Coverage
+  # ============================================================
+
+  rspec:
+    name: RSpec + Coverage
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      LINT_FACTORIES: true
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aurospace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Setup database
+        run: bundle exec rails db:schema:load
+
+      - name: Run RSpec (includes FactoryBot.lint)
+        run: bundle exec rspec --format documentation --format json --out tmp/rspec_results.json
+
+      - name: Enforce global coverage (90%)
+        run: |
+          if [ -f coverage/.last_run.json ]; then
+            COVERAGE=$(ruby -e "require 'json'; puts JSON.parse(File.read('coverage/.last_run.json'))['result']['covered_percent']")
+            echo "## Coverage: ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
+            ruby -e "exit(1) if ${COVERAGE}.to_f < 90.0" || {
+              echo "::error::Coverage ${COVERAGE}% is below 90% minimum"
+              exit 1
+            }
+          fi
+
+      - name: Enforce critical domain coverage (95%)
+        run: ruby bin/check_coverage
+
+      - name: Diff coverage (new code must be tested)
+        run: |
+          if command -v diff-cover &>/dev/null && [ -f coverage/coverage.json ]; then
+            diff-cover coverage/coverage.json --compare-branch=origin/main --fail-under=90 || {
+              echo "::error::New code coverage is below 90%"
+              exit 1
+            }
+          fi
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  # ============================================================
+  # BACKEND: Database Quality
+  # ============================================================
+
+  database-consistency:
+    name: DB Consistency
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aurospace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec rails db:schema:load
+      - run: bundle exec database_consistency
+
+  # ============================================================
+  # BACKEND: Architecture
+  # ============================================================
+
+  architecture:
+    name: Architecture Specs
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aurospace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec rails db:schema:load
+      - run: bundle exec rspec spec/architecture/ --format documentation
+
+  # ============================================================
+  # BACKEND: Documentation
+  # ============================================================
+
+  yard-docs:
+    name: YARD Docs
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - name: Generate and check YARD docs
+        run: |
+          bundle exec yard doc --quiet
+          STATS=$(bundle exec yard stats 2>&1)
+          echo "$STATS"
+          PERCENT=$(echo "$STATS" | grep -oP '[\d.]+(?=% documented)')
+          echo "## YARD: ${PERCENT}% documented" >> $GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: doc/api/
+          retention-days: 14
+
+  # ============================================================
+  # DOCKER
+  # ============================================================
+
+  hadolint:
+    name: Hadolint (Dockerfile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+  docker-build:
+    name: Docker Build
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target production -t aurospace:test .
+      - name: Verify image
+        run: |
+          docker run --rm aurospace:test ruby -v
+          echo "Docker image built successfully"
+
+  docker-smoke:
+    name: Docker Compose Smoke
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start services
+        run: docker compose up -d --wait --wait-timeout 60
+      - name: Healthcheck
+        run: |
+          sleep 5
+          curl -f http://localhost:3000/up || exit 1
+          echo "Docker compose smoke passed"
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  # ============================================================
+  # E2E
+  # ============================================================
+
+  playwright:
+    name: Playwright E2E Smoke
+    needs: [bootstrap, docker-build]
+    if: needs.bootstrap.outputs.has_backend == 'true' && needs.bootstrap.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci
+      - run: cd frontend && npx playwright install --with-deps chromium
+      - name: Start app
+        run: docker compose up -d --wait --wait-timeout 60
+      - name: Run E2E smoke tests
+        run: cd frontend && npx playwright test --project=chromium
+        env:
+          BASE_URL: http://localhost:3000
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  # ============================================================
+  # FRONTEND: Lint & Format
+  # ============================================================
+
+  eslint:
+    name: ESLint
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx eslint . --max-warnings 0
+
+  prettier:
+    name: Prettier
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,css,scss,json}"
+
+  stylelint:
+    name: Stylelint
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx stylelint "src/**/*.{css,scss}" --max-warnings 0
+
+  # ============================================================
+  # FRONTEND: Type Check & Tests
+  # ============================================================
+
+  typescript:
+    name: TypeScript Strict
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  frontend-tests:
+    name: Frontend Tests + Build
+    needs: [bootstrap]
+    if: needs.bootstrap.outputs.has_frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test -- --coverage --watchAll=false
+      - run: npm run build
+
+  # ============================================================
+  # PR AUTOMATION
+  # ============================================================
+
+  danger:
+    name: Danger PR Check
+    needs: [bootstrap]
+    if: github.event_name == 'pull_request' && needs.bootstrap.outputs.has_backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - run: bundle exec danger
+        env:
+          DANGER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # QUALITY GATE (blocks merge)
+  # ============================================================
+
+  quality-gate:
+    name: Quality Gate
+    needs:
+      - bootstrap
+      - rubocop
+      - brakeman
+      - bundle-audit
+      - secret-scan
+      - rspec
+      - database-consistency
+      - architecture
+      - yard-docs
+      - hadolint
+      - docker-build
+      - docker-smoke
+      - playwright
+      - danger
+      - eslint
+      - prettier
+      - stylelint
+      - typescript
+      - frontend-tests
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate all checks
+        run: |
+          echo "## Quality Gate" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          FAILED=false
+
+          check_result() {
+            local name=$1
+            local result=$2
+            if [[ "$result" == "success" ]]; then
+              echo "| $name | PASS |" >> $GITHUB_STEP_SUMMARY
+            elif [[ "$result" == "skipped" ]]; then
+              echo "| $name | SKIP |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $name | **FAIL** |" >> $GITHUB_STEP_SUMMARY
+              FAILED=true
+            fi
+          }
+
+          check_result "RuboCop"          "${{ needs.rubocop.result }}"
+          check_result "Brakeman"         "${{ needs.brakeman.result }}"
+          check_result "Bundle Audit"     "${{ needs.bundle-audit.result }}"
+          check_result "Secret Scan"      "${{ needs.secret-scan.result }}"
+          check_result "RSpec + Coverage"  "${{ needs.rspec.result }}"
+          check_result "DB Consistency"   "${{ needs.database-consistency.result }}"
+          check_result "Architecture"     "${{ needs.architecture.result }}"
+          check_result "YARD Docs"        "${{ needs.yard-docs.result }}"
+          check_result "Hadolint"         "${{ needs.hadolint.result }}"
+          check_result "Docker Build"     "${{ needs.docker-build.result }}"
+          check_result "Docker Smoke"    "${{ needs.docker-smoke.result }}"
+          check_result "Playwright E2E"  "${{ needs.playwright.result }}"
+          check_result "Danger"          "${{ needs.danger.result }}"
+          check_result "ESLint"           "${{ needs.eslint.result }}"
+          check_result "Prettier"         "${{ needs.prettier.result }}"
+          check_result "Stylelint"        "${{ needs.stylelint.result }}"
+          check_result "TypeScript"       "${{ needs.typescript.result }}"
+          check_result "Frontend Tests"   "${{ needs.frontend-tests.result }}"
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if $FAILED; then
+            echo "**BLOCKED: Fix all failing checks before merge.**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "**All checks passed. Ready to merge.**" >> $GITHUB_STEP_SUMMARY
+          fi

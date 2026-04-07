@@ -1,0 +1,111 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# bin/check_coverage
+#
+# Enforces per-folder coverage thresholds for critical domain areas.
+# Run after RSpec: bundle exec rspec && ruby bin/check_coverage
+#
+# Global 90% can be gamed by testing helpers and serializers.
+# This script ensures the MONEY CODE is actually tested.
+
+require 'json'
+
+COVERAGE_FILE = 'coverage/.resultset.json'
+LAST_RUN_FILE = 'coverage/.last_run.json'
+
+# Critical folders with higher thresholds
+CRITICAL_THRESHOLDS = {
+  'app/services/orders'   => 95,
+  'app/services/accounts' => 95,
+  'app/services/yookassa' => 95,
+  'app/jobs'              => 90,
+  'app/mailers'           => 90,
+  'app/models'            => 90,
+}.freeze
+
+GLOBAL_THRESHOLD = 90
+
+def main
+  unless File.exist?(COVERAGE_FILE)
+    warn "Coverage file not found: #{COVERAGE_FILE}"
+    warn 'Run tests first: bundle exec rspec'
+    exit 1
+  end
+
+  data = JSON.parse(File.read(COVERAGE_FILE))
+  results = data.values.first
+  return exit_no_data unless results && results['coverage']
+
+  file_coverage = results['coverage']
+  failures = []
+
+  # Check per-folder thresholds
+  CRITICAL_THRESHOLDS.each do |folder, threshold|
+    folder_files = file_coverage.select { |path, _| path.include?(folder) }
+
+    if folder_files.empty?
+      puts "  SKIP  #{folder} (no files yet)"
+      next
+    end
+
+    total_lines = 0
+    covered_lines = 0
+
+    folder_files.each do |_path, lines|
+      line_data = lines.is_a?(Hash) ? lines['lines'] : lines
+      next unless line_data.is_a?(Array)
+
+      line_data.each do |hit|
+        next if hit.nil?
+
+        total_lines += 1
+        covered_lines += 1 if hit.positive?
+      end
+    end
+
+    percent = total_lines.positive? ? (covered_lines.to_f / total_lines * 100).round(2) : 0
+    status = percent >= threshold ? 'PASS' : 'FAIL'
+
+    puts format('  %-6s %s: %.2f%% (threshold: %d%%)', status, folder, percent, threshold)
+
+    if percent < threshold
+      failures << { folder: folder, actual: percent, threshold: threshold }
+    end
+  end
+
+  # Check global coverage
+  if File.exist?(LAST_RUN_FILE)
+    last_run = JSON.parse(File.read(LAST_RUN_FILE))
+    global = last_run.dig('result', 'covered_percent')&.round(2)
+
+    if global
+      status = global >= GLOBAL_THRESHOLD ? 'PASS' : 'FAIL'
+      puts format("\n  %-6s Global: %.2f%% (threshold: %d%%)", status, global, GLOBAL_THRESHOLD)
+
+      if global < GLOBAL_THRESHOLD
+        failures << { folder: 'GLOBAL', actual: global, threshold: GLOBAL_THRESHOLD }
+      end
+    end
+  end
+
+  puts
+
+  if failures.any?
+    warn "Coverage gate FAILED:"
+    failures.each do |f|
+      warn "  #{f[:folder]}: #{f[:actual]}% < #{f[:threshold]}%"
+    end
+    exit 1
+  else
+    puts "Coverage gate PASSED"
+    exit 0
+  end
+end
+
+def exit_no_data
+  warn 'No coverage data found in resultset'
+  exit 1
+end
+
+main

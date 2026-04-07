@@ -1,0 +1,88 @@
+# docker-compose.yml
+#
+# AUROSPACE Orders Demo - local development stack.
+# Usage: docker compose up
+
+services:
+  # === PostgreSQL ===
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: aurospace
+      POSTGRES_PASSWORD: aurospace_dev
+      POSTGRES_DB: aurospace_development
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aurospace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === Redis ===
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === Rails App ===
+  app:
+    build:
+      context: .
+      target: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-changeme_in_production}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  # === Sidekiq Worker ===
+  sidekiq:
+    build:
+      context: .
+      target: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-changeme_in_production}
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    healthcheck:
+      test: ["CMD-SHELL", "bundle exec sidekiqmon processes | grep -q busy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:

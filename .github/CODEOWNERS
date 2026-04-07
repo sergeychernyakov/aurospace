@@ -1,0 +1,41 @@
+# CODEOWNERS
+#
+# Changes to critical zones require review and MUST have tests.
+# Even in a solo project, this documents what matters most.
+
+# === Money domain (CRITICAL) ===
+# Order lifecycle, balance mutations, payment processing.
+# Any change here MUST have service + request + integration tests.
+app/services/orders/            @sergeychernyakov
+app/services/accounts/          @sergeychernyakov
+app/services/yookassa/          @sergeychernyakov
+app/models/order.rb             @sergeychernyakov
+app/models/account.rb           @sergeychernyakov
+app/models/ledger_entry.rb      @sergeychernyakov
+
+# === Webhook processing ===
+# Idempotency, duplicate handling, out-of-order events.
+app/controllers/webhooks/       @sergeychernyakov
+app/models/webhook_event.rb     @sergeychernyakov
+
+# === Async & side effects ===
+# Jobs must be idempotent, mailers only after commit.
+app/jobs/                       @sergeychernyakov
+app/mailers/                    @sergeychernyakov
+app/models/notification_log.rb  @sergeychernyakov
+
+# === Database schema ===
+# Migrations affect production data. Review carefully.
+db/migrate/                     @sergeychernyakov
+
+# === Security & config ===
+config/initializers/            @sergeychernyakov
+Gemfile                         @sergeychernyakov
+Gemfile.lock                    @sergeychernyakov
+
+# === CI / Quality infrastructure ===
+.github/                        @sergeychernyakov
+.rubocop.yml                    @sergeychernyakov
+.simplecov                      @sergeychernyakov
+lefthook.yml                    @sergeychernyakov
+Dangerfile                      @sergeychernyakov

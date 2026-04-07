@@ -1,0 +1,149 @@
+# lefthook.yml
+# Install: gem install lefthook && lefthook install
+
+pre-commit:
+  parallel: true
+  commands:
+    # ===================== Ruby =====================
+    rubocop:
+      glob: "*.{rb,rake,ru}"
+      run: bundle exec rubocop --force-exclusion {staged_files}
+      stage_fixed: true
+
+    # ===================== JS / TS =====================
+    eslint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: npx eslint --fix {staged_files}
+      stage_fixed: true
+
+    prettier:
+      glob: "*.{js,jsx,ts,tsx,json,css,scss,html,md,yml,yaml}"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
+
+    typescript:
+      glob: "*.{ts,tsx}"
+      run: cd frontend && npx tsc --noEmit
+
+    # ===================== CSS / Styles =====================
+    stylelint:
+      glob: "*.{css,scss}"
+      run: npx stylelint --fix {staged_files}
+      stage_fixed: true
+
+    # ===================== Security =====================
+    detect-secrets:
+      run: |
+        for file in {staged_files}; do
+          if grep -qEi '(password|secret|api_key|token|private_key)\s*[:=]\s*["\x27][^"\x27]{8,}' "$file" 2>/dev/null; then
+            echo "BLOCKED: Possible secret detected in $file"
+            exit 1
+          fi
+        done
+
+    detect-private-keys:
+      run: |
+        for file in {staged_files}; do
+          if grep -q "BEGIN.*PRIVATE KEY" "$file" 2>/dev/null; then
+            echo "BLOCKED: Private key detected in $file"
+            exit 1
+          fi
+        done
+
+    # ===================== General =====================
+    trailing-whitespace:
+      glob: "*.{rb,js,jsx,ts,tsx,css,scss,html,erb,yml,yaml,md}"
+      run: |
+        for file in {staged_files}; do
+          if grep -qP '\s+$' "$file" 2>/dev/null; then
+            sed -i '' 's/[[:space:]]*$//' "$file"
+            echo "Fixed trailing whitespace in $file"
+          fi
+        done
+      stage_fixed: true
+
+    no-debug:
+      glob: "*.{rb,js,jsx,ts,tsx}"
+      run: |
+        for file in {staged_files}; do
+          if grep -qE '(binding\.pry|binding\.irb|byebug|debugger\b|console\.log\()' "$file" 2>/dev/null; then
+            echo "BLOCKED: Debug statement found in $file"
+            exit 1
+          fi
+        done
+
+    merge-conflicts:
+      glob: "*.{rb,js,jsx,ts,tsx,css,scss,html,erb,yml,yaml,json,md}"
+      run: |
+        for file in {staged_files}; do
+          if grep -qE '^(<{7}|>{7}|={7})' "$file" 2>/dev/null; then
+            echo "BLOCKED: Merge conflict markers found in $file"
+            exit 1
+          fi
+        done
+
+    no-focus-specs:
+      glob: "*_spec.rb"
+      run: |
+        for file in {staged_files}; do
+          if grep -qE '(fdescribe|fcontext|fit |fspecify|focus: true)' "$file" 2>/dev/null; then
+            echo "BLOCKED: Focused spec found in $file (fdescribe/fcontext/fit/focus: true)"
+            exit 1
+          fi
+        done
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: |
+        MSG=$(head -1 {1})
+        # Allow merge commits
+        if echo "$MSG" | grep -qE '^Merge '; then
+          exit 0
+        fi
+        # Validate conventional commit format
+        if ! echo "$MSG" | grep -qE '^(feat|fix|refactor|perf|test|docs|chore|security|db)\(.+\): .{3,72}$'; then
+          echo ""
+          echo "BLOCKED: Commit message does not follow convention."
+          echo ""
+          echo "Format:  <type>(<scope>): <subject>"
+          echo "Example: feat(orders): add cancellation with ledger reversal"
+          echo ""
+          echo "Types:   feat fix refactor perf test docs chore security db"
+          echo "Scopes:  orders accounts payments webhooks mailers jobs admin api ci docker deps config"
+          echo ""
+          echo "Your message: $MSG"
+          echo ""
+          echo "See: docs/COMMIT_CONVENTION.md"
+          exit 1
+        fi
+        # Check subject length
+        SUBJECT=$(echo "$MSG" | sed 's/^[^:]*: //')
+        if [ ${#SUBJECT} -gt 72 ]; then
+          echo "BLOCKED: Subject too long (${#SUBJECT} chars, max 72)"
+          exit 1
+        fi
+
+pre-push:
+  commands:
+    # ===================== Backend =====================
+    rspec:
+      glob: "*.rb"
+      run: bundle exec rspec --fail-fast
+
+    brakeman:
+      run: bundle exec brakeman -q --no-pager
+
+    bundle-audit:
+      run: bundle exec bundle-audit check --update
+
+    database-consistency:
+      run: bundle exec database_consistency
+
+    # ===================== Docs =====================
+    yard-coverage:
+      run: |
+        UNDOC=$(bundle exec yard stats | grep "Undocumented Objects" | awk '{print $NF}')
+        if [ -n "$UNDOC" ] && [ "$UNDOC" != "0" ]; then
+          echo "WARNING: $UNDOC undocumented objects. Run: bundle exec yard stats --list-undoc"
+        fi

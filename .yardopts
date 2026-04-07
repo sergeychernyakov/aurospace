@@ -1,0 +1,12 @@
+--markup markdown
+--markup-provider redcarpet
+--output-dir doc/api
+--protected
+--no-private
+--hide-void-return
+--embed-mixins
+--title 'AUROSPACE Orders Demo - API Documentation'
+--charset utf-8
+-
+app/**/*.rb
+lib/**/*.rb

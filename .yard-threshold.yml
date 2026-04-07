@@ -1,0 +1,8 @@
+# YARD documentation coverage threshold
+# Check with: yard stats --list-undoc
+# Enforce in CI: yard stats --list-undoc | grep -q "100.00% documented" || exit 1
+threshold: 80
+paths:
+  - app/services/**/*.rb
+  - app/models/**/*.rb
+  - lib/**/*.rb

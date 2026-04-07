@@ -1,0 +1,138 @@
+require:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-performance
+  - rubocop-factory_bot
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  SuggestExtensions: false
+  Exclude:
+    - 'db/schema.rb'
+    - 'db/migrate/**/*'
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'log/**/*'
+    - 'public/**/*'
+    - 'config/initializers/devise.rb'
+    - 'config/environments/**/*'
+    - 'config/puma.rb'
+
+# --- Layout ---
+
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - '^\s*#'  # comments
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+# --- Metrics ---
+
+Metrics/MethodLength:
+  Max: 15
+  CountAsOne:
+    - 'array'
+    - 'hash'
+    - 'heredoc'
+
+Metrics/ClassLength:
+  Max: 150
+  CountAsOne:
+    - 'array'
+    - 'hash'
+    - 'heredoc'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'config/routes.rb'
+    - 'config/environments/**/*'
+    - 'lib/tasks/**/*'
+    - 'app/admin/**/*'
+
+Metrics/AbcSize:
+  Max: 20
+
+# --- Style ---
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Style/WordArray:
+  EnforcedStyle: brackets
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never
+
+Style/BlockDelimiters:
+  EnforcedStyle: braces_for_chaining
+
+# --- Rails ---
+
+Rails/FilePath:
+  EnforcedStyle: arguments
+
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+Rails/SkipsModelValidations:
+  Exclude:
+    - 'spec/**/*'
+
+# --- RSpec ---
+
+RSpec/ExampleLength:
+  Max: 15
+
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/LetSetup:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 8
+
+# --- Performance ---
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
+  Enabled: true

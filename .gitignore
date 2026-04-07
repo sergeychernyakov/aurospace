@@ -1,0 +1,51 @@
+# Agent & AI configuration (local only)
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Ruby / Rails
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/public/assets
+/public/packs
+/public/packs-test
+/node_modules
+/yarn-error.log
+/.bundle
+/vendor/bundle
+
+# Database
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/db/*.sqlite3-shm
+/db/*.sqlite3-wal
+
+# Credentials (keep encrypted versions)
+/config/master.key
+/config/credentials/*.key
+
+# Coverage
+/coverage/
+
+# Docker
+docker-compose.override.yml

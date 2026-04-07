@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# bin/ci — Run all quality gates locally (mirrors CI pipeline)
+
+set -uo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+PASS=0
+FAIL=0
+WARN=0
+
+run_check() {
+  local name=$1
+  shift
+  printf "${BLUE}  ▸ %-32s${NC}" "$name"
+  if OUTPUT=$("$@" 2>&1); then
+    printf "${GREEN}PASS${NC}\n"
+    PASS=$((PASS + 1))
+    return 0
+  else
+    printf "${RED}FAIL${NC}\n"
+    echo "$OUTPUT" | tail -10
+    echo ""
+    FAIL=$((FAIL + 1))
+    return 1
+  fi
+}
+
+run_warn() {
+  local name=$1
+  shift
+  printf "${BLUE}  ▸ %-32s${NC}" "$name"
+  if OUTPUT=$("$@" 2>&1); then
+    printf "${GREEN}PASS${NC}\n"
+    PASS=$((PASS + 1))
+  else
+    printf "${YELLOW}WARN${NC}\n"
+    echo "$OUTPUT" | tail -5
+    echo ""
+    WARN=$((WARN + 1))
+  fi
+}
+
+echo ""
+echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+echo -e "${BOLD}  AUROSPACE — Local Quality Gates${NC}"
+echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+echo ""
+
+# ═══════════════════════════════════════
+# Backend
+# ═══════════════════════════════════════
+echo -e "${BOLD}  Backend${NC}"
+echo "  ─────────────────────────────────────────"
+
+run_check "RuboCop"                    bundle exec rubocop --parallel --format simple
+run_check "RSpec"                      bundle exec rspec --format progress
+run_check "Packwerk"                   bundle exec packwerk validate
+run_check "Brakeman"                   bundle exec brakeman -q --no-pager
+run_warn  "bundle-audit"               bundle exec bundle-audit check --update
+
+if [ -x bin/check_coverage ] && [ -f coverage/.resultset.json ]; then
+  run_check "Coverage (95% critical)"  ruby bin/check_coverage
+fi
+
+echo ""
+
+# ═══════════════════════════════════════
+# Frontend
+# ═══════════════════════════════════════
+if [ -f frontend/package-lock.json ]; then
+  echo -e "${BOLD}  Frontend${NC}"
+  echo "  ─────────────────────────────────────────"
+  run_check "ESLint"                   bash -c "cd frontend && npx eslint . --max-warnings 0"
+  run_check "Prettier"                 bash -c "cd frontend && npx prettier --check 'src/**/*.{ts,tsx,js,jsx,css,scss,json}'"
+  run_check "TypeScript"               bash -c "cd frontend && npx tsc --noEmit"
+  run_check "Vitest"                   bash -c "cd frontend && npm test -- --watchAll=false"
+  run_check "Build"                    bash -c "cd frontend && npm run build"
+  echo ""
+else
+  echo -e "  ${YELLOW}Frontend: skipped (no package-lock.json)${NC}"
+  echo ""
+fi
+
+# ═══════════════════════════════════════
+# Docker (optional)
+# ═══════════════════════════════════════
+if [ "${CI_DOCKER:-0}" = "1" ] && command -v docker > /dev/null 2>&1; then
+  echo -e "${BOLD}  Docker${NC}"
+  echo "  ─────────────────────────────────────────"
+  if command -v hadolint > /dev/null 2>&1; then
+    run_check "Hadolint"               hadolint Dockerfile
+  fi
+  run_check "Docker build"             docker build --target production -t aurospace:test .
+  echo ""
+fi
+
+# ═══════════════════════════════════════
+# Summary
+# ═══════════════════════════════════════
+TOTAL=$((PASS + FAIL + WARN))
+echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+printf "  ${GREEN}PASS: %d${NC}  ${RED}FAIL: %d${NC}  ${YELLOW}WARN: %d${NC}  Total: %d\n" "$PASS" "$FAIL" "$WARN" "$TOTAL"
+echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
+echo ""
+
+if [ "$FAIL" -gt 0 ]; then
+  echo -e "  ${RED}${BOLD}Quality gate FAILED.${NC}"
+  echo ""
+  exit 1
+else
+  echo -e "  ${GREEN}${BOLD}Quality gate PASSED.${NC}"
+  echo ""
+  exit 0
+fi

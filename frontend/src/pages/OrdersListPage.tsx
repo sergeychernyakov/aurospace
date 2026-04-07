@@ -44,7 +44,7 @@ export default function OrdersListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-100">Orders</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Orders</h1>
         <button
           onClick={() => setShowForm(true)}
           className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
@@ -94,7 +94,7 @@ export default function OrdersListPage() {
                   className="cursor-pointer hover:bg-gray-200 dark:bg-gray-700"
                 >
                   <td className="px-4 py-3 font-medium text-blue-400">{order.id}</td>
-                  <td className="px-4 py-3 text-gray-100">
+                  <td className="px-4 py-3 text-gray-900 dark:text-gray-100">
                     <MoneyFormat cents={order.amount_cents} currency={order.currency} />
                   </td>
                   <td className="px-4 py-3">

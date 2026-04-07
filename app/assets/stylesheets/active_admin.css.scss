@@ -130,4 +130,25 @@ html.dark {
     text-shadow: none !important;
   }
 
+  // Status tags — readable in dark
+  .status_tag {
+    border-radius: 12px !important;
+    padding: 3px 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+
+    &.yes, &.ok, &.successful, &.processed { background: #166534 !important; color: #bbf7d0 !important; }
+    &.payment_pending, &.pending, &.warning { background: #854d0e !important; color: #fef08a !important; }
+    &.no, &.cancelled, &.failed, &.error { background: #991b1b !important; color: #fecaca !important; }
+    &.created { background: #1e40af !important; color: #bfdbfe !important; }
+  }
+
+  // EMPTY labels
+  .empty { color: $dark-text-muted !important; }
+
 } // end html.dark
+
+// Hide breadcrumb globally (shows ugly "A /" from namespace)
+.breadcrumb { display: none !important; }

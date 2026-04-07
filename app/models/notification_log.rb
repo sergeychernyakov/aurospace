@@ -5,8 +5,6 @@
 class NotificationLog < ApplicationRecord
   include Discard::Model
 
-  default_scope -> { kept }
-
   belongs_to :order
 
   validates :mail_type, presence: true, uniqueness: { scope: :order_id }

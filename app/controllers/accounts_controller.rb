@@ -2,7 +2,7 @@
 
 # app/controllers/accounts_controller.rb
 
-class AccountsController < ApplicationController
+class AccountsController < ApiController
   def show
     account = if params[:user_id]
                 Account.find_by!(user_id: params[:user_id])

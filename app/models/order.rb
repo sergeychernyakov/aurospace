@@ -6,8 +6,6 @@ class Order < ApplicationRecord
   include AASM
   include Discard::Model
 
-  default_scope -> { kept }
-
   belongs_to :user
   has_many :ledger_entries, dependent: :restrict_with_error
 

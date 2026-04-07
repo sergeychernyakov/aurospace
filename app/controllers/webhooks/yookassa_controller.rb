@@ -3,8 +3,7 @@
 # app/controllers/webhooks/yookassa_controller.rb
 
 module Webhooks
-  class YookassaController < ApplicationController
-    skip_before_action :verify_authenticity_token, raise: false
+  class YookassaController < ApiController
     before_action :verify_ip
 
     # YooKassa webhook IP ranges

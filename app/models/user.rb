@@ -5,8 +5,6 @@
 class User < ApplicationRecord
   include Discard::Model
 
-  default_scope -> { kept }
-
   has_one :account, dependent: :destroy
   has_many :orders, dependent: :destroy
 

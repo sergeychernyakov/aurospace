@@ -2,7 +2,7 @@
 
 # app/controllers/orders_controller.rb
 
-class OrdersController < ApplicationController
+class OrdersController < ApiController
   def index
     orders = Order.where(user_id: params[:user_id]).order(created_at: :desc).limit(50)
     render json: orders

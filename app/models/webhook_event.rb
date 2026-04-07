@@ -5,8 +5,6 @@
 class WebhookEvent < ApplicationRecord
   include Discard::Model
 
-  default_scope -> { kept }
-
   validates :provider, presence: true
   validates :external_event_id, presence: true, uniqueness: true
   validates :event_type, presence: true

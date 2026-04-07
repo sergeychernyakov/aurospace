@@ -355,7 +355,7 @@ The project treats quality as an **enforceable engineering standard**, not a bes
 | **New code in PR** (diff coverage) | 90% | `diff-cover` |
 | **Branch coverage** | 85% | SimpleCov branch mode |
 
-### CI Pipeline (15 parallel checks + Quality Gate)
+### CI Pipeline (17 parallel checks + Quality Gate)
 
 | Category | Checks |
 |----------|--------|
@@ -366,7 +366,8 @@ The project treats quality as an **enforceable engineering standard**, not a bes
 | **Backend Docs** | YARD documentation coverage |
 | **Frontend Lint** | ESLint, Prettier, Stylelint |
 | **Frontend Quality** | TypeScript strict, tests + build |
-| **Docker** | Hadolint, Docker build |
+| **E2E** | Playwright smoke tests |
+| **Docker** | Hadolint, Docker build, Docker Compose smoke |
 | **PR Automation** | Danger (tests for changes, critical zone alerts) |
 | **Quality Gate** | Blocks merge if ANY check fails |
 
@@ -508,6 +509,7 @@ Documented in [`docs/adr/`](docs/adr/):
 | Document | Purpose |
 |----------|---------|
 | [Project Specification](docs/SPECIFICATION.md) | Full project spec and requirements |
+| [Architecture Invariants](docs/ARCHITECTURE.md) | Rules that must always hold true |
 | [Ruby Style Guide](RUBY_STYLE_GUIDE.md) | Coding conventions |
 | [Commit Convention](docs/COMMIT_CONVENTION.md) | Commit message and PR standards |
 | [ADR: Architectural Decisions](docs/adr/) | Why we chose what we chose |

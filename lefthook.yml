@@ -72,6 +72,16 @@ pre-commit:
           fi
         done
 
+    merge-conflicts:
+      glob: "*.{rb,js,jsx,ts,tsx,css,scss,html,erb,yml,yaml,json,md}"
+      run: |
+        for file in {staged_files}; do
+          if grep -qE '^(<{7}|>{7}|={7})' "$file" 2>/dev/null; then
+            echo "BLOCKED: Merge conflict markers found in $file"
+            exit 1
+          fi
+        done
+
     no-focus-specs:
       glob: "*_spec.rb"
       run: |

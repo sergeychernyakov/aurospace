@@ -261,6 +261,56 @@ jobs:
           docker run --rm aurospace:test ruby -v
           echo "Docker image built successfully"
 
+  docker-smoke:
+    name: Docker Compose Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start services
+        run: docker compose up -d --wait --wait-timeout 60
+      - name: Healthcheck
+        run: |
+          sleep 5
+          curl -f http://localhost:3000/up || exit 1
+          echo "Docker compose smoke passed"
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  # ============================================================
+  # E2E
+  # ============================================================
+
+  playwright:
+    name: Playwright E2E Smoke
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci
+      - run: cd frontend && npx playwright install --with-deps chromium
+      - name: Start app
+        run: docker compose up -d --wait --wait-timeout 60
+      - name: Run E2E smoke tests
+        run: cd frontend && npx playwright test --project=chromium
+        env:
+          BASE_URL: http://localhost:3000
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
   # ============================================================
   # FRONTEND: Lint & Format
   # ============================================================
@@ -387,6 +437,8 @@ jobs:
       - yard-docs
       - hadolint
       - docker-build
+      - docker-smoke
+      - playwright
       - eslint
       - prettier
       - stylelint
@@ -427,6 +479,8 @@ jobs:
           check_result "YARD Docs"        "${{ needs.yard-docs.result }}"
           check_result "Hadolint"         "${{ needs.hadolint.result }}"
           check_result "Docker Build"     "${{ needs.docker-build.result }}"
+          check_result "Docker Smoke"    "${{ needs.docker-smoke.result }}"
+          check_result "Playwright E2E"  "${{ needs.playwright.result }}"
           check_result "ESLint"           "${{ needs.eslint.result }}"
           check_result "Prettier"         "${{ needs.prettier.result }}"
           check_result "Stylelint"        "${{ needs.stylelint.result }}"

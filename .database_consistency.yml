@@ -1,0 +1,27 @@
+# .database_consistency.yml
+# Configuration for database_consistency gem
+# Ensures DB constraints match model validations
+
+DatabaseConsistencyCheckers:
+  ColumnPresenceChecker:
+    enabled: true
+  ForeignKeyChecker:
+    enabled: true
+  ForeignKeyTypeChecker:
+    enabled: true
+  LengthConstraintChecker:
+    enabled: true
+  MissingIndexChecker:
+    enabled: true
+  MissingUniqueIndexChecker:
+    enabled: true
+  NullConstraintChecker:
+    enabled: true
+  PrimaryKeyTypeChecker:
+    enabled: true
+  RedundantIndexChecker:
+    enabled: true
+  RedundantUniqueIndexChecker:
+    enabled: true
+  ThreeStateBooleanChecker:
+    enabled: true

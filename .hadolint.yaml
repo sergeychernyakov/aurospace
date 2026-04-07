@@ -1,0 +1,10 @@
+# .hadolint.yaml
+# Dockerfile linter configuration
+# Install: brew install hadolint
+# Run: hadolint Dockerfile
+
+ignored:
+  - DL3008  # Pin versions in apt-get (we use --no-install-recommends)
+
+trustedRegistries:
+  - docker.io

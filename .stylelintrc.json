@@ -1,0 +1,25 @@
+{
+  "extends": ["stylelint-config-standard", "stylelint-config-css-modules"],
+  "rules": {
+    "color-hex-length": "long",
+    "color-no-invalid-hex": true,
+    "declaration-block-no-duplicate-properties": true,
+    "declaration-block-no-shorthand-property-overrides": true,
+    "font-family-no-duplicate-names": true,
+    "no-descending-specificity": null,
+    "no-duplicate-selectors": true,
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "declaration-empty-line-before": null,
+    "at-rule-no-unknown": [true, {
+      "ignoreAtRules": ["tailwind", "apply", "variants", "responsive", "screen", "layer"]
+    }]
+  },
+  "ignoreFiles": [
+    "dist/**",
+    "build/**",
+    "node_modules/**",
+    "coverage/**",
+    "public/assets/**"
+  ]
+}

@@ -1,0 +1,11 @@
+dist/
+build/
+node_modules/
+coverage/
+public/assets/
+db/schema.rb
+vendor/
+tmp/
+log/
+*.min.js
+*.min.css

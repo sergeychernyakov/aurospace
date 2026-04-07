@@ -1,0 +1,51 @@
+# .dockerignore
+
+# Git
+.git
+.gitignore
+
+# CI/CD
+.github/
+.claude/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Dependencies (rebuilt in container)
+node_modules/
+vendor/bundle/
+
+# Test / Coverage
+spec/
+coverage/
+tmp/
+log/
+
+# Environment
+.env
+.env.*
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Agent configs
+AGENTS.md
+CLAUDE.md
+lefthook.yml
+Dangerfile
+.simplecov

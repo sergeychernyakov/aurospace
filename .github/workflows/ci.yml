@@ -101,13 +101,27 @@ jobs:
       - name: Scan for secrets
         run: |
           FOUND=0
-          # Check for private keys
-          if grep -rn "BEGIN.*PRIVATE KEY" --include="*.rb" --include="*.yml" --include="*.json" --include="*.env" . 2>/dev/null; then
+          # Check for private keys (exclude CI/hook configs that contain the pattern itself)
+          MATCHES=$(grep -rn "BEGIN.*PRIVATE KEY" --include="*.rb" --include="*.yml" --include="*.json" --include="*.env" . 2>/dev/null \
+            | grep -v ".github/workflows/" \
+            | grep -v "lefthook.yml" \
+            | grep -v "# Check for" \
+            || true)
+          if [ -n "$MATCHES" ]; then
+            echo "$MATCHES"
             echo "::error::Private key found in source code"
             FOUND=1
           fi
-          # Check for hardcoded credentials
-          if grep -rn -E "(password|secret|api_key|token)\s*[:=]\s*['\"][^'\"]{8,}" --include="*.rb" --include="*.yml" . 2>/dev/null | grep -v "spec/" | grep -v "config/initializers/filter" | grep -v ".rubocop"; then
+          # Check for hardcoded credentials (exclude test/config files)
+          CRED_MATCHES=$(grep -rn -E "(password|secret|api_key|token)\s*[:=]\s*['\"][^'\"]{8,}" --include="*.rb" --include="*.yml" . 2>/dev/null \
+            | grep -v "spec/" \
+            | grep -v "config/initializers/filter" \
+            | grep -v ".rubocop" \
+            | grep -v ".github/workflows/" \
+            | grep -v "lefthook.yml" \
+            || true)
+          if [ -n "$CRED_MATCHES" ]; then
+            echo "$CRED_MATCHES"
             echo "::warning::Possible hardcoded credential detected"
           fi
           exit $FOUND

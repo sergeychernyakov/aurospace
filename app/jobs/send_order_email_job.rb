@@ -5,7 +5,11 @@
 class SendOrderEmailJob < ApplicationJob
   queue_as :mailers
 
+  ALLOWED_MAIL_TYPES = ['order_created', 'payment_successful', 'order_cancelled'].freeze
+
   def perform(order_id, mail_type)
+    raise ArgumentError, "Invalid mail_type: #{mail_type}" unless ALLOWED_MAIL_TYPES.include?(mail_type)
+
     order = Order.find(order_id)
 
     return if NotificationLog.exists?(order_id: order_id, mail_type: mail_type)

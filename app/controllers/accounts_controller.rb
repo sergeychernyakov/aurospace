@@ -10,7 +10,7 @@ class AccountsController < ApplicationController
       user_id: account.user_id,
       balance_cents: account.balance_cents,
       currency: account.currency,
-      ledger_entries: account.ledger_entries.order(created_at: :desc).map { |e| ledger_entry_json(e) },
+      ledger_entries: account.ledger_entries.order(created_at: :desc).limit(100).map { |e| ledger_entry_json(e) },
     }
   end
 

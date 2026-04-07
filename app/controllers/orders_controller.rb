@@ -4,7 +4,7 @@
 
 class OrdersController < ApplicationController
   def index
-    orders = Order.where(user_id: params[:user_id]).order(created_at: :desc)
+    orders = Order.where(user_id: params[:user_id]).order(created_at: :desc).limit(50)
     render json: orders
   end
 
@@ -16,9 +16,14 @@ class OrdersController < ApplicationController
   def create
     user = User.find(params[:user_id])
     result = Orders::Create.new.call(
-      user: user, amount_cents: params[:amount_cents].to_i, currency: params.fetch(:currency, 'RUB'),
+      user: user,
+      amount_cents: Integer(order_params[:amount_cents]),
+      currency: order_params.fetch(:currency, 'RUB'),
     )
     handle_result(result, :created)
+  rescue ArgumentError, TypeError
+    render json: { error: { code: 'invalid_amount', message: 'amount_cents must be a valid integer' } },
+           status: :unprocessable_entity
   end
 
   def pay
@@ -43,6 +48,10 @@ class OrdersController < ApplicationController
   end
 
   private
+
+  def order_params
+    params.permit(:amount_cents, :currency, :user_id)
+  end
 
   def handle_result(result, success_status)
     case result

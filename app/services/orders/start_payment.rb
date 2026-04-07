@@ -6,21 +6,22 @@ module Orders
   class StartPayment
     include Dry::Monads[:result]
 
-    # @param order [Order] the order to start payment for
-    # @param payment_id [String] external payment provider ID
-    # @param confirmation_url [String] URL for user to confirm payment
-    # @return [Dry::Monads::Result] Success or Failure
     def call(order:, payment_id:, confirmation_url:)
       return Failure(:invalid_transition) unless order.may_start_payment?
 
-      order.start_payment!
-      order.update!(
-        payment_provider: 'yookassa',
-        external_payment_id: payment_id,
-      )
+      ActiveRecord::Base.transaction do
+        order.lock!
+        raise Orders::InvalidTransitionError unless order.may_start_payment?
 
-      Success({ order: order, confirmation_url: confirmation_url })
-    rescue AASM::InvalidTransition
+        order.start_payment!
+        order.update!(
+          payment_provider: 'yookassa',
+          external_payment_id: payment_id,
+        )
+      end
+
+      Success({ order: order.reload, confirmation_url: confirmation_url })
+    rescue AASM::InvalidTransition, Orders::InvalidTransitionError
       Failure(:invalid_transition)
     end
   end

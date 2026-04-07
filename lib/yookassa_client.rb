@@ -44,6 +44,8 @@ class YookassaClient
       f.request :json
       f.request :authorization, :basic, @shop_id, @secret_key
       f.response :json
+      f.options.timeout = 10
+      f.options.open_timeout = 5
       f.adapter Faraday.default_adapter
     end
   end

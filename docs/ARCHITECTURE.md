@@ -57,16 +57,73 @@ created → payment_pending → successful → cancelled
 - Status is checked BEFORE acquiring locks
 - Transition + ledger entry + balance update happen in ONE transaction
 
-### No direct status updates
+### No direct status updates (AASM enforced)
 
 ```
-Order#status is NEVER updated via update/update!/save.
-Only use-case services change status.
+Order uses AASM state machine. Status transitions happen
+ONLY via AASM events: start_payment!, mark_successful!, cancel!
+Direct update/update!/save on status column is forbidden.
 ```
 
-- No `order.update(status: :successful)` in controllers/jobs/admin
-- Admin "Cancel" button calls `Orders::Cancel` service
-- Webhook processing calls `Orders::MarkSuccessful` service
+- `order.start_payment!` --- created -> payment_pending
+- `order.mark_successful!` --- payment_pending -> successful
+- `order.cancel!` --- successful -> cancelled
+- `AASM::InvalidTransition` raised on invalid transitions
+- Admin "Cancel" button calls `Orders::Cancel` service which calls `order.cancel!`
+
+---
+
+## Service Result Pattern (dry-monads)
+
+```
+All services return Dry::Monads::Result.
+Success(value) for happy path.
+Failure(error_symbol) for business errors.
+No exceptions for expected business logic failures.
+```
+
+- Services `include Dry::Monads[:result]`
+- Controllers use pattern matching: `case service.call(...) in Success(v) ... in Failure(e) ...`
+- Exceptions reserved for truly unexpected errors (DB down, network failure)
+- `ApplicationError` subclasses still exist for error serialization, but are not raised from services
+
+---
+
+## Module Boundaries (Packwerk)
+
+```
+Domain is split into packages with explicit public interfaces.
+Cross-package dependencies are declared and enforced.
+```
+
+Packages:
+- `orders` --- Order model, order services (Create, Cancel, StartPayment, MarkSuccessful)
+- `accounts` --- Account model, LedgerEntry, ApplyLedgerEntry service
+- `payments` --- YooKassa client, CreatePayment, ProcessWebhook, WebhookEvent
+- `notifications` --- OrderMailer, SendOrderEmailJob, NotificationLog
+
+Rules:
+- `notifications` can depend on `orders` (to read order data for emails)
+- `orders` can depend on `accounts` (to apply ledger entries)
+- `orders` can depend on `payments` (to create payments)
+- `accounts` cannot depend on `orders` (no circular deps)
+- `payments` cannot depend on `notifications` (no circular deps)
+
+Enforced via `bundle exec packwerk validate`.
+
+---
+
+## Observability (OpenTelemetry)
+
+```
+All requests, DB queries, Redis calls, Sidekiq jobs,
+and external HTTP calls are automatically traced.
+```
+
+- Auto-instrumented: Rails, PG, Redis, Sidekiq, Net::HTTP
+- Custom spans for critical operations: `ApplyLedgerEntry`, `ProcessWebhook`
+- Trace IDs propagated through async job processing
+- Disabled in test environment to avoid noise
 
 ---
 

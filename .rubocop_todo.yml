@@ -12,6 +12,11 @@
 Metrics/BlockLength:
   Exclude:
     - '.simplecov'
+    - 'config/initializers/active_admin.rb'
+
+Rails/OutputSafety:
+  Exclude:
+    - 'config/initializers/active_admin.rb'
 
 # Offense count: 1
 # Configuration parameters: IgnoredMetadata.

@@ -80,7 +80,7 @@ export default function OrderDetailPage() {
           {order.external_payment_id && (
             <div>
               <dt className="text-sm text-gray-500 dark:text-gray-400">Payment ID</dt>
-              <dd className="mt-1 text-sm font-mono text-xs text-gray-300">{order.external_payment_id}</dd>
+              <dd className="mt-1 text-sm font-mono text-xs text-gray-600 dark:text-gray-300">{order.external_payment_id}</dd>
             </div>
           )}
         </dl>

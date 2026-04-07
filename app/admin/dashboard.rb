@@ -36,11 +36,26 @@ ActiveAdmin.register_page 'Dashboard' do
           total_balance = Account.unscoped.sum(:balance_cents) / 100.0
 
           ul do
-            li { strong { 'Total Orders: ' }; text_node total_orders.to_s }
-            li { strong { 'Successful: ' }; text_node successful.to_s }
-            li { strong { 'Total Revenue: ' }; text_node "#{revenue} RUB" }
-            li { strong { 'Total Accounts: ' }; text_node total_accounts.to_s }
-            li { strong { 'Total Balance: ' }; text_node "#{total_balance} RUB" }
+            li do
+              strong { 'Total Orders: ' }
+              text_node total_orders.to_s
+            end
+            li do
+              strong { 'Successful: ' }
+              text_node successful.to_s
+            end
+            li do
+              strong { 'Total Revenue: ' }
+              text_node "#{revenue} RUB"
+            end
+            li do
+              strong { 'Total Accounts: ' }
+              text_node total_accounts.to_s
+            end
+            li do
+              strong { 'Total Balance: ' }
+              text_node "#{total_balance} RUB"
+            end
           end
         end
       end
@@ -54,19 +69,43 @@ ActiveAdmin.register_page 'Dashboard' do
           stats = Sidekiq::Stats.new
 
           ul do
-            li { strong { 'Processed: ' }; text_node stats.processed.to_s }
-            li { strong { 'Failed: ' }; text_node stats.failed.to_s }
-            li { strong { 'Enqueued: ' }; text_node stats.enqueued.to_s }
-            li { strong { 'Scheduled: ' }; text_node Sidekiq::ScheduledSet.new.size.to_s }
-            li { strong { 'Retry: ' }; text_node Sidekiq::RetrySet.new.size.to_s }
-            li { strong { 'Dead: ' }; text_node Sidekiq::DeadSet.new.size.to_s }
-            li { strong { 'Workers Busy: ' }; text_node Sidekiq::Workers.new.size.to_s }
+            li do
+              strong { 'Processed: ' }
+              text_node stats.processed.to_s
+            end
+            li do
+              strong { 'Failed: ' }
+              text_node stats.failed.to_s
+            end
+            li do
+              strong { 'Enqueued: ' }
+              text_node stats.enqueued.to_s
+            end
+            li do
+              strong { 'Scheduled: ' }
+              text_node Sidekiq::ScheduledSet.new.size.to_s
+            end
+            li do
+              strong { 'Retry: ' }
+              text_node Sidekiq::RetrySet.new.size.to_s
+            end
+            li do
+              strong { 'Dead: ' }
+              text_node Sidekiq::DeadSet.new.size.to_s
+            end
+            li do
+              strong { 'Workers Busy: ' }
+              text_node Sidekiq::Workers.new.size.to_s
+            end
           end
 
           h4 'Queues', style: 'margin-top: 12px; font-weight: 600;'
           ul do
             Sidekiq::Queue.all.each do |q|
-              li { strong { "#{q.name}: " }; text_node "#{q.size} jobs (latency: #{q.latency.round(1)}s)" }
+              li do
+                strong { "#{q.name}: " }
+                text_node "#{q.size} jobs (latency: #{q.latency.round(1)}s)"
+              end
             end
             li { 'No queues' } if Sidekiq::Queue.all.empty?
           end
@@ -87,18 +126,45 @@ ActiveAdmin.register_page 'Dashboard' do
           disk = `df -h / 2>/dev/null`.split("\n").last&.split || []
 
           # Uptime
-          uptime_sec = (Time.zone.now - File.stat("/proc/#{Process.pid}").mtime).round rescue nil # rubocop:disable Style/RescueModifier
+          (Time.zone.now - File.stat("/proc/#{Process.pid}").mtime).round rescue nil # rubocop:disable Style/RescueModifier
 
           ul do
-            li { strong { 'Ruby: ' }; text_node RUBY_VERSION }
-            li { strong { 'Rails: ' }; text_node Rails.version }
-            li { strong { 'PID: ' }; text_node Process.pid.to_s }
-            li { strong { 'Memory (RSS): ' }; text_node "#{rss_mb} MB" }
-            li { strong { 'Load Average: ' }; text_node load_avg.to_s }
-            li { strong { 'Disk Used: ' }; text_node (disk[2] || 'N/A').to_s + ' / ' + (disk[1] || 'N/A').to_s }
-            li { strong { 'Disk Available: ' }; text_node (disk[3] || 'N/A').to_s }
-            li { strong { 'GC Count: ' }; text_node GC.count.to_s }
-            li { strong { 'GC Heap Pages: ' }; text_node GC.stat[:heap_allocated_pages].to_s }
+            li do
+              strong { 'Ruby: ' }
+              text_node RUBY_VERSION
+            end
+            li do
+              strong { 'Rails: ' }
+              text_node Rails.version
+            end
+            li do
+              strong { 'PID: ' }
+              text_node Process.pid.to_s
+            end
+            li do
+              strong { 'Memory (RSS): ' }
+              text_node "#{rss_mb} MB"
+            end
+            li do
+              strong { 'Load Average: ' }
+              text_node load_avg.to_s
+            end
+            li do
+              strong { 'Disk Used: ' }
+              text_node "#{disk[2] || "N/A"} / #{disk[1] || "N/A"}"
+            end
+            li do
+              strong { 'Disk Available: ' }
+              text_node (disk[3] || 'N/A').to_s
+            end
+            li do
+              strong { 'GC Count: ' }
+              text_node GC.count.to_s
+            end
+            li do
+              strong { 'GC Heap Pages: ' }
+              text_node GC.stat[:heap_allocated_pages].to_s
+            end
           end
         end
       end
@@ -115,7 +181,10 @@ ActiveAdmin.register_page 'Dashboard' do
 
           ul do
             rows.each do |row|
-              li { strong { "#{row[0]}: " }; text_node row[1].to_s + ' rows' }
+              li do
+                strong { "#{row[0]}: " }
+                text_node "#{row[1]} rows"
+              end
             end
           end
         rescue StandardError => e
@@ -133,7 +202,7 @@ ActiveAdmin.register_page 'Dashboard' do
 
           # Table sizes
           table_sizes = ActiveRecord::Base.connection.exec_query(
-            "SELECT relname, pg_size_pretty(pg_total_relation_size(relid)) AS size " \
+            'SELECT relname, pg_size_pretty(pg_total_relation_size(relid)) AS size ' \
             'FROM pg_catalog.pg_statio_user_tables ORDER BY pg_total_relation_size(relid) DESC LIMIT 10',
           ).rows
 
@@ -143,15 +212,27 @@ ActiveAdmin.register_page 'Dashboard' do
           ).rows.first&.first
 
           ul do
-            li { strong { 'Database: ' }; text_node db_name }
-            li { strong { 'Total Size: ' }; text_node db_size.to_s }
-            li { strong { 'Active Connections: ' }; text_node connections.to_s }
+            li do
+              strong { 'Database: ' }
+              text_node db_name
+            end
+            li do
+              strong { 'Total Size: ' }
+              text_node db_size.to_s
+            end
+            li do
+              strong { 'Active Connections: ' }
+              text_node connections.to_s
+            end
           end
 
           h4 'Table Sizes', style: 'margin-top: 12px; font-weight: 600;'
           ul do
             table_sizes.each do |row|
-              li { strong { "#{row[0]}: " }; text_node row[1].to_s }
+              li do
+                strong { "#{row[0]}: " }
+                text_node row[1].to_s
+              end
             end
           end
         rescue StandardError => e

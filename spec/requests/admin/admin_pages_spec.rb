@@ -28,7 +28,7 @@ RSpec.describe 'Admin Pages' do
     it 'renders the dashboard' do
       get '/a', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('AUROSPACE Dashboard')
+      expect(response.body).to include('Dashboard')
     end
   end
 

@@ -60,7 +60,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Balance Card */}
-      <div className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white shadow-lg">
+      <div className="rounded-xl bg-gradient-to-r from-blue-400 to-blue-500 dark:from-blue-600 dark:to-blue-800 p-6 text-white shadow-lg">
         <p className="text-sm font-medium opacity-80">Current Balance</p>
         <p className="mt-1 text-4xl font-bold">
           <MoneyFormat cents={account?.balance_cents ?? 0} currency={account?.currency} />

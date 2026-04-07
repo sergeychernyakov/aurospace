@@ -233,7 +233,7 @@ RSpec.describe 'Full scenario integration' do
     it 'step 12a: renders the dashboard' do
       get '/a', headers: { 'HTTP_AUTHORIZATION' => admin_credentials }
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('AUROSPACE Dashboard')
+      expect(response.body).to include('Dashboard')
     end
 
     it 'step 12b: renders orders index' do

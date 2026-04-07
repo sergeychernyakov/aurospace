@@ -23,6 +23,17 @@ post-checkout:
         fi
 
 pre-commit:
+  commands:
+    no-commit-to-main:
+      run: |
+        BRANCH=$(git branch --show-current)
+        if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+          echo ""
+          echo "BLOCKED: Direct commits to '$BRANCH' are not allowed."
+          echo "Create a feature branch: git checkout -b feat/your-change"
+          echo ""
+          exit 1
+        fi
   parallel: true
   commands:
     # ===================== Ruby =====================
@@ -147,6 +158,17 @@ commit-msg:
 
 pre-push:
   commands:
+    no-push-to-main:
+      run: |
+        BRANCH=$(git branch --show-current)
+        if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+          echo ""
+          echo "BLOCKED: Direct push to '$BRANCH' is not allowed."
+          echo "Use a feature branch and create a PR."
+          echo ""
+          exit 1
+        fi
+
     # ===================== Backend =====================
     rspec:
       glob: "*.rb"

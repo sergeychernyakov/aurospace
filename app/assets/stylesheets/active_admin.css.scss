@@ -2,8 +2,7 @@
 @import "active_admin/mixins";
 @import "active_admin/base";
 
-// === Dark theme ===
-
+// === Variables ===
 $dark-bg: #111827;
 $dark-surface: #1f2937;
 $dark-border: #374151;
@@ -12,225 +11,123 @@ $dark-text-muted: #9ca3af;
 $dark-accent: #3b82f6;
 $dark-accent-hover: #60a5fa;
 $dark-header: #1e293b;
-$dark-panel-header: #1e3a5f;
 
-body.active_admin {
-  background-color: $dark-bg;
-  color: $dark-text;
-}
+// === DARK THEME (only when html.dark) ===
+html.dark {
 
-#header {
-  background: $dark-header;
-  border-bottom: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-
-  h1 { color: $dark-text; }
-
-  ul.tabs > li {
-    a { color: $dark-text-muted; &:hover { color: white; background: rgba(255,255,255,0.1); } }
-    &.current > a { color: white; background: $dark-accent; border-radius: 6px; }
+  body.active_admin {
+    background-color: $dark-bg;
+    color: $dark-text;
   }
-}
 
-#title_bar {
-  background: $dark-bg;
-  border-bottom: 1px solid $dark-border;
-  color: $dark-text;
-  box-shadow: none;
+  #header {
+    background: $dark-header;
+    border-bottom: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    h1 { color: $dark-text; }
+    ul.tabs > li {
+      a { color: $dark-text-muted; &:hover { color: white; background: rgba(255,255,255,0.1); } }
+      &.current > a { color: white; background: $dark-accent; border-radius: 6px; }
+    }
+  }
 
-  h2 {
-    color: $dark-text !important;
-    font-weight: 600 !important;
-    font-style: normal !important;
-    text-shadow: none !important;
-    background: none !important;
+  #title_bar {
+    background: $dark-bg !important;
     background-image: none !important;
     border: none !important;
     box-shadow: none !important;
-  }
-}
-
-// Panels — clean, minimal borders
-.panel {
-  background: $dark-surface;
-  border: none !important;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-
-  h3 {
-    background: $dark-surface !important;
-    background-image: none !important;
-    color: $dark-text !important;
-    border: none !important;
-    border-bottom: 1px solid $dark-border !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    font-style: normal !important;
-    padding: 12px 16px;
-    text-shadow: none !important;
-    margin: 0 !important;
+    h2 { color: $dark-text !important; font-style: normal !important; text-shadow: none !important; }
   }
 
-  .panel_contents { padding: 16px; }
-}
-
-// ALL tables (index, dashboard, show panels)
-table, table.index_table {
-  border: none;
-  border-collapse: collapse;
-  width: 100%;
-
-  th {
-    background: $dark-surface !important;
-    color: $dark-text-muted !important;
-    border: 1px solid $dark-border !important;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-    font-style: normal !important;
-  }
-  td {
-    background: $dark-bg !important;
-    color: $dark-text !important;
-    border: 1px solid $dark-border !important;
-  }
-  tr:nth-child(even) td { background: $dark-surface !important; }
-  tr:hover td { background: rgba(59, 130, 246, 0.1) !important; }
-}
-
-.attributes_table {
-  th {
-    background: $dark-surface;
-    color: $dark-text-muted;
-    border-color: $dark-border;
-    font-weight: 500;
-  }
-  td {
-    background: transparent;
-    color: $dark-text;
-    border-color: $dark-border;
-  }
-}
-
-// Sidebar
-#sidebar {
-  background: transparent;
   .panel {
     background: $dark-surface;
-    border-color: $dark-border;
+    border: none !important;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+
+    h3 {
+      background: $dark-surface !important;
+      background-image: none !important;
+      color: $dark-text !important;
+      border: none !important;
+      border-bottom: 1px solid $dark-border !important;
+      font-style: normal !important;
+      text-shadow: none !important;
+    }
+    .panel_contents { padding: 16px; }
   }
-}
 
-#active_admin_content { background: $dark-bg; }
-
-// Links
-a { color: $dark-accent; }
-a:hover { color: $dark-accent-hover; }
-.breadcrumb { color: $dark-text-muted; a { color: $dark-text-muted; } }
-
-// Forms
-input, select, textarea {
-  background: $dark-bg;
-  color: $dark-text;
-  border: 1px solid $dark-border;
-  border-radius: 6px;
-  padding: 8px 12px;
-
-  &:focus {
-    border-color: $dark-accent;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  table, table.index_table {
+    border: none;
+    th {
+      background: $dark-surface !important;
+      color: $dark-text-muted !important;
+      border: 1px solid $dark-border !important;
+      font-style: normal !important;
+    }
+    td {
+      background: $dark-bg !important;
+      color: $dark-text !important;
+      border: 1px solid $dark-border !important;
+    }
+    tr:nth-child(even) td { background: $dark-surface !important; }
+    tr:hover td { background: rgba(59, 130, 246, 0.1) !important; }
   }
-}
 
-.filter_form {
-  background: $dark-surface;
-  border-radius: 8px;
-  border: 1px solid $dark-border;
-  label { color: $dark-text; }
-  .filter_form_field { margin-bottom: 12px; }
-}
-
-// Action buttons
-a.member_link, a.button, input[type="submit"] {
-  background: $dark-accent;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 14px;
-  cursor: pointer;
-
-  &:hover { background: $dark-accent-hover; color: white; }
-}
-
-// Status tags
-.status_tag {
-  border-radius: 12px;
-  padding: 2px 10px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-// Pagination
-nav.pagination {
-  span, a { color: $dark-text-muted; }
-  a:hover { color: $dark-accent; }
-  .current { background: $dark-accent; color: white; border-radius: 4px; padding: 2px 8px; }
-}
-
-// Flash messages
-.flash {
-  border-radius: 8px;
-  border: none;
-
-  &.flash_notice { background: rgba(59, 130, 246, 0.15); color: $dark-accent-hover; }
-  &.flash_error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
-}
-
-// Dashboard list items
-.active_admin_page .panel ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  li {
-    padding: 8px 0;
-    border-bottom: 1px solid $dark-border;
-    font-size: 14px;
-
-    &:last-child { border-bottom: none; }
+  .attributes_table {
+    th { background: $dark-surface !important; color: $dark-text-muted !important; border-color: $dark-border !important; }
+    td { background: transparent !important; color: $dark-text !important; border-color: $dark-border !important; }
   }
-}
 
-// Override ALL h3 in admin (ActiveAdmin uses section > h3, .panel > h3)
-body.active_admin h3,
-body.active_admin section > h3,
-body.active_admin .panel > h3 {
-  background: $dark-surface !important;
-  background-image: none !important;
-  color: $dark-text !important;
-  border: none !important;
-  border-bottom: 1px solid $dark-border !important;
-  font-style: normal !important;
-  text-shadow: none !important;
-  box-shadow: none !important;
-}
+  #sidebar {
+    background: transparent;
+    .panel { background: $dark-surface; border-color: $dark-border; }
+  }
 
-// Kill ALL remaining ActiveAdmin gradients and bright borders
-body.active_admin {
+  #active_admin_content { background: $dark-bg; }
+
+  a { color: $dark-accent; }
+  a:hover { color: $dark-accent-hover; }
+  .breadcrumb { color: $dark-text-muted; a { color: $dark-text-muted; } }
+
+  input, select, textarea {
+    background: $dark-bg;
+    color: $dark-text;
+    border: 1px solid $dark-border;
+    &:focus { border-color: $dark-accent; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+  }
+
+  .filter_form {
+    background: $dark-surface;
+    border: 1px solid $dark-border;
+    border-radius: 8px;
+    label { color: $dark-text; }
+  }
+
+  .status_tag { border-radius: 12px; }
+
+  nav.pagination {
+    span, a { color: $dark-text-muted; }
+    .current { background: $dark-accent; color: white; border-radius: 4px; }
+  }
+
+  .flash {
+    border: none; border-radius: 8px;
+    &.flash_notice { background: rgba(59, 130, 246, 0.15); color: $dark-accent-hover; }
+    &.flash_error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+  }
+
+  .active_admin_page .panel ul {
+    list-style: none; padding: 0; margin: 0;
+    li { padding: 8px 0; border-bottom: 1px solid $dark-border; font-size: 14px;
+      &:last-child { border-bottom: none; }
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
     background-image: none !important;
     text-shadow: none !important;
   }
 
-  #title_bar, .title_bar {
-    background-image: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-}
-
-// Columns spacing
-.columns { gap: 16px; }
+} // end html.dark

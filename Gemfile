@@ -8,7 +8,7 @@ ruby '3.3.1'
 gem 'bootsnap', require: false
 gem 'pg', '~> 1.5'
 gem 'puma', '~> 6.4'
-gem 'rails', '~> 7.1'
+gem 'rails', '~> 7.2', '>= 7.2.3.1'
 gem 'redis', '~> 5.0'
 gem 'sidekiq', '~> 7.2'
 gem 'sidekiq-unique-jobs', '~> 8.0'

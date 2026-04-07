@@ -128,6 +128,47 @@ Start with Packwerk config + architecture specs in PR 1. Enforce incrementally a
 
 ---
 
+## Soft Delete (discard)
+
+Financial data must never be physically deleted. We use `discard` gem (not `paranoia`):
+- Explicit API: `discard` / `undiscard`, does not override `destroy`
+- No magic, no conflicts with `dependent: :destroy` or unique indexes
+- Works via `discarded_at` timestamp column + default scope
+
+**Models with discard:**
+
+| Model | Why |
+|-------|-----|
+| `Order` | Cancelled orders must be preserved for audit |
+| `User` | User data retained for financial history |
+| `Account` | Account history must survive user removal |
+| `WebhookEvent` | All incoming events are audit trail |
+| `NotificationLog` | Email history preserved |
+
+**Models WITHOUT discard:**
+- `LedgerEntry` --- already immutable (no update, no destroy). Physical delete prohibited at model level.
+
+**Usage:**
+```ruby
+class Order < ApplicationRecord
+  include Discard::Model
+  default_scope -> { kept }  # only non-discarded by default
+end
+
+# Soft delete:
+order.discard   # sets discarded_at
+
+# Admin can see all:
+Order.with_discarded
+Order.discarded
+```
+
+**Gem:** `discard ~> 1.3`
+
+**Migration:** `add_column :orders, :discarded_at, :datetime` + index (added in PR 11 alongside ActiveAdmin).
+
+---
+
 ## PR Sequence
 
 ### PR 1: Rails Scaffold `feat/rails-scaffold` [L]
@@ -307,16 +348,58 @@ Specs (~22 examples).
 
 ---
 
-### PR 11: ActiveAdmin + Basic Auth `feat/activeadmin` [M]
+### PR 11: ActiveAdmin + Basic Auth + Dashboard `feat/activeadmin` [L]
 **Depends on:** PR 9. **Parallel with PR 10, 13.**
 
 HTTP Basic Auth via `ADMIN_USER` / `ADMIN_PASSWORD` from ENV.
 
-Resources: Orders (AASM status, cancel via service), Accounts, LedgerEntries, WebhookEvents, NotificationLogs, Dashboard.
+**Resources:** Orders (AASM status, cancel via service), Accounts, LedgerEntries, WebhookEvents, NotificationLogs.
 
-No direct balance/status editing. N+1 prevention.
+**No direct balance/status editing.** N+1 prevention with includes.
 
-Request specs (~12 examples).
+**Dashboard with charts (Chartkick + Groupdate):**
+
+1. **Business metrics:**
+   - Orders by status (pie chart)
+   - Orders created per day/week (line chart)
+   - Revenue over time (successful orders amount_cents, line chart)
+   - Average order amount trend
+   - Total balance across all accounts
+
+2. **Sidekiq monitoring:**
+   - Queue sizes (critical, default, mailers, low)
+   - Processed/failed jobs counters
+   - Retry queue size
+   - Worker busy/idle count
+   - Sidekiq Web UI mounted at `/admin/sidekiq`
+
+3. **Database statistics:**
+   - Table row counts (users, orders, accounts, ledger_entries, webhook_events, notification_logs)
+   - Table sizes (bytes)
+   - Database total size
+   - Active connections count
+   - Recent slow queries (if pg_stat_statements enabled)
+
+4. **Server health:**
+   - Memory usage (RSS)
+   - CPU load average
+   - Disk usage
+   - Ruby process info (PID, memory, GC stats)
+   - Uptime
+
+**Soft delete (discard):**
+- Migration: add `discarded_at` (datetime, indexed) to orders, users, accounts, webhook_events, notification_logs
+- Add `include Discard::Model` + `default_scope -> { kept }` to each model
+- Admin shows discarded records via `with_discarded` scope
+- Architecture spec: verify `LedgerEntry` does NOT include Discard
+
+**Gems to add:**
+- `chartkick` --- charts in admin views
+- `groupdate` --- time-based grouping for SQL queries
+- `discard` --- soft delete
+- `sidekiq` already installed, mount Sidekiq::Web under admin auth
+
+Request specs (~15 examples).
 
 ---
 
@@ -386,7 +469,7 @@ PR1 → PR2 → PR3 → PR4 → PR5 → PR6 → PR7 → PR8 → PR9 → PR10
 | 8 | API Controllers + rswag + OpenTelemetry | L | ~35 |
 | 9 | Jobs (sidekiq-unique-jobs) + Mailer | M | ~22 |
 | 10 | Integration Tests | M | ~20 |
-| 11 | ActiveAdmin + Basic Auth | M | ~12 |
+| 11 | ActiveAdmin + Dashboard (charts, Sidekiq, DB, server) | L | ~15 |
 | 12 | Seeds | S | ~2 |
 | 13 | Frontend Scaffold (demo-user mode) | L | ~8 |
 | 14 | Frontend Pages | M | ~8 |

@@ -130,7 +130,11 @@ Start with Packwerk config + architecture specs in PR 1. Enforce incrementally a
 
 ## PR Sequence
 
-### PR 1: Rails Scaffold `feat/rails-scaffold` [L]
+### PR 1: Rails Scaffold `feat/scaffold-rails-api` [L] --- DONE
+
+> Merged via PR #3. Branch: `feat/scaffold-rails-api`.
+> RSpec 10/0, RuboCop 0 offenses, Packwerk OK, Brakeman 0 warnings, bundle-audit 0 CVEs.
+> Security audit passed. Code review passed. QA: GO.
 
 Generate Rails API skeleton. Configure foundational tools.
 

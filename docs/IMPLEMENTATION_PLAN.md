@@ -1,5 +1,22 @@
 # AUROSPACE Orders Demo --- Implementation Plan
 
+## Progress
+
+| PRs | Status | What | GitHub PRs |
+|-----|--------|------|------------|
+| 1 | DONE | Rails scaffold, configs, quality infra | #3 |
+| 2-5 | DONE | Models, ledger service, create/cancel | #5 |
+| 6-10 | DONE | Payment services, YooKassa, API, jobs, mailer, integration tests | #6 |
+| 11 | TODO | ActiveAdmin + dashboard + discard | --- |
+| 12 | TODO | Seeds | --- |
+| 13-14 | TODO | Frontend (React) | --- |
+| 15 | TODO | Production deploy | --- |
+
+**Current state:** 216 tests, 0 failures. 71 Ruby files. 7 services, 6 models, 5 controllers, 3 jobs, 1 mailer.
+`bin/ci`: 18 PASS, 0 FAIL.
+
+---
+
 ## Scope
 
 ### In Scope
@@ -171,7 +188,7 @@ Order.discarded
 
 ## PR Sequence
 
-### PR 1: Rails Scaffold `feat/rails-scaffold` [L]
+### PR 1: Rails Scaffold `feat/scaffold-rails-api` [L] --- DONE (PR #3)
 
 Generate Rails API skeleton. Configure foundational tools.
 
@@ -195,7 +212,7 @@ Generate Rails API skeleton. Configure foundational tools.
 
 ---
 
-### PR 2: User + Account Models `feat/user-account-models` [M]
+### PR 2: User + Account Models `feat/user-account-models` [M] --- DONE (PR #5)
 **Depends on:** PR 1
 
 **User** --- just data, no auth:
@@ -212,7 +229,7 @@ Factories + model specs (~10 examples).
 
 ---
 
-### PR 3: Order (AASM) + LedgerEntry + WebhookEvent + NotificationLog `feat/order-ledger-models` [L]
+### PR 3: Order (AASM) + LedgerEntry + WebhookEvent + NotificationLog `feat/order-ledger-models` [L] --- DONE (PR #5)
 **Depends on:** PR 2
 
 **Order with AASM:**
@@ -238,7 +255,7 @@ Factories + model specs including AASM transition tests (~30 examples).
 
 ---
 
-### PR 4: Accounts::ApplyLedgerEntry `feat/accounts-ledger-service` [M]
+### PR 4: Accounts::ApplyLedgerEntry `feat/accounts-ledger-service` [M] --- DONE (PR #5)
 **Depends on:** PR 3. **THE most critical service.**
 
 Returns `dry-monads Result`. Validates BEFORE transaction, raises inside transaction for rollback.
@@ -254,7 +271,7 @@ Specs (target 95%+, ~20 examples): Success/Failure paths, atomicity, concurrency
 
 ---
 
-### PR 5: Orders::Create + Orders::Cancel `feat/order-create-cancel` [M]
+### PR 5: Orders::Create + Orders::Cancel `feat/order-create-cancel` [M] --- DONE (PR #5)
 **Depends on:** PR 4
 
 Both return `dry-monads Result`. Cancel uses AASM `order.cancel!`.
@@ -267,7 +284,7 @@ Specs (target 95%+, ~18 examples).
 
 ---
 
-### PR 6: Orders::StartPayment + Orders::MarkSuccessful `feat/order-payment-services` [M] --- DONE
+### PR 6: Orders::StartPayment + Orders::MarkSuccessful `feat/order-payment-services` [M] --- DONE (PR #6)
 **Depends on:** PR 5
 
 **StartPayment:** AASM `order.may_start_payment?`, `order.start_payment!`. Injectable payment result param.
@@ -278,7 +295,7 @@ Specs (target 95%+, ~18 examples).
 
 ---
 
-### PR 7: YooKassa Integration `feat/yookassa-integration` [L] --- DONE
+### PR 7: YooKassa Integration `feat/yookassa-integration` [L] --- DONE (PR #6)
 **Depends on:** PR 6
 
 **lib/clients/yookassa_client.rb:** create/get payment, Idempotence-Key header.
@@ -291,7 +308,7 @@ All HTTP mocked via WebMock/VCR. Specs (~22 examples).
 
 ---
 
-### PR 8: API Controllers + rswag + OpenTelemetry `feat/api-controllers` [L] --- DONE
+### PR 8: API Controllers + rswag + OpenTelemetry `feat/api-controllers` [L] --- DONE (PR #6)
 **Depends on:** PR 7
 
 **OpenTelemetry added HERE** (not PR 1) --- now there are requests, DB, Redis, HTTP to trace.
@@ -314,7 +331,7 @@ Request specs + rswag specs (~35 examples).
 
 ---
 
-### PR 9: Jobs (sidekiq-unique-jobs) + Mailer `feat/async-email` [M] --- DONE
+### PR 9: Jobs (sidekiq-unique-jobs) + Mailer `feat/async-email` [M] --- DONE (PR #6)
 **Depends on:** PR 8
 
 **sidekiq-unique-jobs** prevents duplicate execution:
@@ -335,7 +352,7 @@ Specs (~22 examples).
 
 ---
 
-### PR 10: Integration Tests `test/integration-flows` [M] --- DONE
+### PR 10: Integration Tests `test/integration-flows` [M] --- DONE (PR #6)
 **Depends on:** PR 9
 
 - **Payment flow:** create -> pay -> webhook -> success

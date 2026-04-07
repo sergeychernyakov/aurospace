@@ -26,12 +26,27 @@ RSpec.describe 'Architecture constraints' do
 
       ruby_files_in('app/controllers').each do |file|
         content = file_content(file)
-        # Match method definitions and count lines until next def or end
-        content.scan(/^\s*def (\w+).*?(?=\n\s*def |\n\s*private|\nend)/m).each do |match|
-          method_body = match[0]
-          line_count = method_body.lines.count
-          if line_count > 15
-            violations << "#{file}##{method_body.lines.first.strip} (#{line_count} lines)"
+        lines = content.lines
+        method_ranges = []
+        current_method = nil
+        depth = 0
+
+        lines.each_with_index do |line, idx|
+          stripped = line.strip
+
+          if stripped.match?(/\Adef (\w+)/)
+            current_method = { name: stripped, file: file, start: idx, depth: depth }
+          end
+
+          depth += 1 if stripped.match?(/\b(def|do|if|unless|case|begin|class|module)\b/) && !stripped.match?(/\bend\b/)
+          depth -= 1 if stripped == 'end'
+
+          if current_method && depth <= current_method[:depth] && stripped == 'end'
+            line_count = idx - current_method[:start] - 1 # exclude def and end lines
+            if line_count > 15
+              violations << "#{file}##{current_method[:name]} (#{line_count} lines)"
+            end
+            current_method = nil
           end
         end
       end

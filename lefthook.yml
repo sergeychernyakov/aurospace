@@ -23,12 +23,12 @@ pre-commit:
 
     typescript:
       glob: "*.{ts,tsx}"
-      run: cd frontend && npx tsc --noEmit 2>/dev/null || echo "TypeScript not configured yet, skipping"
+      run: cd frontend && npx tsc --noEmit
 
     # ===================== CSS / Styles =====================
     stylelint:
       glob: "*.{css,scss}"
-      run: npx stylelint --fix {staged_files} 2>/dev/null || echo "Stylelint not configured yet, skipping"
+      run: npx stylelint --fix {staged_files}
       stage_fixed: true
 
     # ===================== Security =====================
@@ -129,23 +129,21 @@ pre-push:
     # ===================== Backend =====================
     rspec:
       glob: "*.rb"
-      run: bundle exec rspec --fail-fast 2>/dev/null || echo "RSpec not configured yet, skipping"
+      run: bundle exec rspec --fail-fast
 
     brakeman:
-      run: bundle exec brakeman -q --no-pager 2>/dev/null || echo "Brakeman not configured yet, skipping"
+      run: bundle exec brakeman -q --no-pager
 
     bundle-audit:
-      run: bundle exec bundle-audit check --update 2>/dev/null || echo "bundle-audit not configured yet, skipping"
+      run: bundle exec bundle-audit check --update
 
     database-consistency:
-      run: bundle exec database_consistency 2>/dev/null || echo "database_consistency not configured yet, skipping"
+      run: bundle exec database_consistency
 
     # ===================== Docs =====================
     yard-coverage:
       run: |
-        if command -v yard &>/dev/null; then
-          UNDOC=$(bundle exec yard stats 2>/dev/null | grep "Undocumented Objects" | awk '{print $NF}')
-          if [ -n "$UNDOC" ] && [ "$UNDOC" != "0" ]; then
-            echo "WARNING: $UNDOC undocumented objects. Run: bundle exec yard stats --list-undoc"
-          fi
+        UNDOC=$(bundle exec yard stats | grep "Undocumented Objects" | awk '{print $NF}')
+        if [ -n "$UNDOC" ] && [ "$UNDOC" != "0" ]; then
+          echo "WARNING: $UNDOC undocumented objects. Run: bundle exec yard stats --list-undoc"
         fi

@@ -35,7 +35,7 @@ RUN bundle install --jobs 4 --retry 3 && \
 
 COPY . .
 
-RUN SECRET_KEY_BASE=placeholder bundle exec rails assets:precompile 2>/dev/null || true
+RUN SECRET_KEY_BASE=placeholder bundle exec rails assets:precompile
 
 # === Stage 3: Production ===
 FROM base AS production

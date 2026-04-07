@@ -49,9 +49,9 @@ services:
     environment:
       DATABASE_URL: postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
       REDIS_URL: redis://redis:6379/0
-      RAILS_ENV: production
+      RAILS_ENV: development
       RAILS_LOG_TO_STDOUT: "true"
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE must be set}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dev_secret_key_base_not_for_production}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
       interval: 30s
@@ -72,9 +72,9 @@ services:
     environment:
       DATABASE_URL: postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
       REDIS_URL: redis://redis:6379/0
-      RAILS_ENV: production
+      RAILS_ENV: development
       RAILS_LOG_TO_STDOUT: "true"
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?SECRET_KEY_BASE must be set}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-dev_secret_key_base_not_for_production}
     command: bundle exec sidekiq -C config/sidekiq.yml
     healthcheck:
       test: ["CMD-SHELL", "bundle exec sidekiqmon processes | grep -q busy || exit 1"]

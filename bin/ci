@@ -171,8 +171,6 @@ elif command -v docker > /dev/null 2>&1 && timeout 5 docker info > /dev/null 2>&
   fi
   if $HAS_APP; then
     run_check "Docker Compose smoke" bash -c '
-      export SECRET_KEY_BASE=test_ci
-      export FORCE_SSL=false
       docker compose down -v 2>/dev/null
       docker compose build app 2>/dev/null
       docker compose up -d --wait --wait-timeout 120 && \
@@ -232,8 +230,6 @@ if $FAST_MODE || ! $HAS_REAL_FRONTEND || ! $HAS_APP; then
   run_skip "Playwright E2E Smoke"          "(requires App.tsx + bootable app + Docker)"
 elif command -v docker > /dev/null 2>&1 && timeout 5 docker info > /dev/null 2>&1; then
   run_check "Playwright E2E Smoke" bash -c '
-    export SECRET_KEY_BASE=test_ci
-    export FORCE_SSL=false
     export CI=1
     export BASE_URL=http://localhost:3000
     docker compose down -v 2>/dev/null

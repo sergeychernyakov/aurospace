@@ -13,8 +13,25 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/orders': 'http://localhost:3000',
-      '/accounts': 'http://localhost:3000',
+      // Proxy API requests to Rails (only non-HTML requests)
+      '/orders': {
+        target: 'http://localhost:3000',
+        bypass(req) {
+          // If browser navigation (HTML request), let React handle it
+          if (req.headers.accept?.includes('text/html')) {
+            return req.url;
+          }
+        },
+      },
+      '/accounts': {
+        target: 'http://localhost:3000',
+        bypass(req) {
+          if (req.headers.accept?.includes('text/html')) {
+            return req.url;
+          }
+        },
+      },
+      // These are always API, no browser navigation
       '/webhooks': 'http://localhost:3000',
       '/api-docs': 'http://localhost:3000',
       '/a': 'http://localhost:3000',

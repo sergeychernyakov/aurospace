@@ -16,7 +16,7 @@ module Yookassa
         amount_cents: order.amount_cents,
         currency: order.currency,
         description: "Order ##{order.id}",
-        return_url: ENV.fetch('YOOKASSA_RETURN_URL', "http://localhost:3000/orders/#{order.id}"),
+        return_url: "#{ENV.fetch("FRONTEND_URL", "http://localhost:5173")}/orders/#{order.id}",
         idempotence_key: "order_#{order.id}",
       )
 

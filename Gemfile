@@ -60,6 +60,9 @@ gem 'money-rails', '~> 1.15'
 gem 'yookassa', '~> 0.1'
 
 group :development, :test do
+  # === Environment ===
+  gem 'dotenv-rails', '~> 3.1'
+
   # === Debugging ===
   gem 'debug', platforms: [:mri]
   gem 'pry-rails'

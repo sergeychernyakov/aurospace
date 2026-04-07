@@ -57,13 +57,15 @@ ActiveAdmin.register_page 'Dashboard' do
       end
       column do
         panel 'Database' do
-          tables = ActiveRecord::Base.connection.execute(
-            'SELECT relname AS table, n_live_tup AS rows FROM pg_stat_user_tables ORDER BY n_live_tup DESC',
+          result = ActiveRecord::Base.connection.exec_query(
+            'SELECT relname AS table_name, n_live_tup AS rows FROM pg_stat_user_tables ORDER BY n_live_tup DESC',
           )
-          table_for tables do
-            column('Table') { |t| t['table'] }
-            column('Rows') { |t| t['rows'] }
+          table_for result.rows do
+            column('Table') { |row| row[0] }
+            column('Rows') { |row| row[1] }
           end
+        rescue StandardError => e
+          para "Database stats unavailable: #{e.message}"
         end
       end
     end

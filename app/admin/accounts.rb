@@ -5,6 +5,8 @@
 ActiveAdmin.register Account do
   menu priority: 3
 
+  actions :index, :show
+
   includes :user
 
   scope_to(nil, association_method: :unscoped)

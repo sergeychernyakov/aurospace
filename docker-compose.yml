@@ -46,6 +46,7 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
       DATABASE_URL: postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
       REDIS_URL: redis://redis:6379/0
@@ -69,6 +70,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    env_file: .env
     environment:
       DATABASE_URL: postgres://aurospace:aurospace_dev@postgres:5432/aurospace_development
       REDIS_URL: redis://redis:6379/0

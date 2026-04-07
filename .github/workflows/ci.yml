@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - run: bundle exec rubocop --parallel
 
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - run: bundle exec brakeman -q --no-pager --ensure-latest
 
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - run: bundle exec bundle-audit check --update
 
@@ -165,7 +165,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Setup database
@@ -232,7 +232,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - run: bundle exec rails db:schema:load
       - run: bundle exec database_consistency
@@ -264,7 +264,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - run: bundle exec rails db:schema:load
       - run: bundle exec rspec spec/architecture/ --format documentation
@@ -282,7 +282,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - name: Generate and check YARD docs
         run: |
@@ -328,6 +328,8 @@ jobs:
     needs: [bootstrap]
     if: needs.bootstrap.outputs.has_backend == 'true'
     runs-on: ubuntu-latest
+    env:
+      SECRET_KEY_BASE: test_secret_key_base_for_ci_only
     steps:
       - uses: actions/checkout@v4
       - name: Start services
@@ -350,6 +352,8 @@ jobs:
     needs: [bootstrap, docker-build]
     if: needs.bootstrap.outputs.has_backend == 'true' && needs.bootstrap.outputs.has_frontend == 'true'
     runs-on: ubuntu-latest
+    env:
+      SECRET_KEY_BASE: test_secret_key_base_for_ci_only
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -490,7 +494,7 @@ jobs:
           fetch-depth: 0
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
           bundler-cache: true
       - run: bundle exec danger
         env:

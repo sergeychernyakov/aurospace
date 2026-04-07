@@ -4,7 +4,7 @@
 # Non-root user, minimal image, healthcheck included.
 
 # === Stage 1: Base ===
-FROM ruby:3.2-slim AS base
+FROM ruby:3.3-slim AS base
 
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \

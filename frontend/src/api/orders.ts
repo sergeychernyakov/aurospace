@@ -17,6 +17,9 @@ export function useOrder(id: number | null) {
     queryKey: ['order', id],
     queryFn: () => api.get<Order>(`/orders/${id}`),
     enabled: id !== null,
+    refetchOnMount: 'always',
+    staleTime: 0,
+    retry: 2,
   });
 }
 

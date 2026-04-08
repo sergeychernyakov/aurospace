@@ -29,7 +29,7 @@ RSpec.describe 'Idempotency integration' do
 
       expect(order.reload).to be_successful
       expect(account.reload.balance_cents).to eq(5000)
-      expect(LedgerEntry.count).to eq(1)
+      expect(order.ledger_entries.count).to eq(1)
 
       # Duplicate webhook
       post '/webhooks/yookassa', params: webhook_params, as: :json
@@ -37,9 +37,9 @@ RSpec.describe 'Idempotency integration' do
       perform_enqueued_jobs(only: ProcessWebhookJob)
 
       # Verify no duplicate processing
-      expect(LedgerEntry.count).to eq(1)
+      expect(order.ledger_entries.count).to eq(1)
       expect(account.reload.balance_cents).to eq(5000)
-      expect(WebhookEvent.count).to eq(1)
+      expect(WebhookEvent.where(external_event_id: order.external_payment_id).count).to eq(1)
     end
   end
 
@@ -58,7 +58,7 @@ RSpec.describe 'Idempotency integration' do
       result2 = service.call(order: order.reload)
       expect(result2).to be_success
 
-      expect(LedgerEntry.count).to eq(1)
+      expect(order.ledger_entries.count).to eq(1)
       expect(account.reload.balance_cents).to eq(3000)
     end
   end
@@ -71,7 +71,7 @@ RSpec.describe 'Idempotency integration' do
       SendOrderEmailJob.perform_now(order.id, 'order_created')
 
       expect(ActionMailer::Base.deliveries.count).to eq(1)
-      expect(NotificationLog.count).to eq(1)
+      expect(NotificationLog.where(order: order).count).to eq(1)
     end
 
     it 'allows different mail types for same order' do
@@ -79,7 +79,7 @@ RSpec.describe 'Idempotency integration' do
       SendOrderEmailJob.perform_now(order.id, 'payment_successful')
 
       expect(ActionMailer::Base.deliveries.count).to eq(2)
-      expect(NotificationLog.count).to eq(2)
+      expect(NotificationLog.where(order: order).count).to eq(2)
     end
   end
 

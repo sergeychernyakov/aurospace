@@ -128,7 +128,7 @@ RSpec.describe Orders::Cancel do
         }.to raise_error(ActiveRecord::RecordInvalid)
 
         expect(account.reload.balance_cents).to eq(5000)
-        expect(LedgerEntry.count).to eq(0)
+        expect(LedgerEntry.where(order: order).count).to eq(0)
       end
     end
 

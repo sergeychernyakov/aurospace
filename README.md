@@ -348,10 +348,13 @@ bundle exec rspec spec/integration/payment_flow_spec.rb
 
 | Parameter | Value |
 |-----------|-------|
-| **Server** | 168.222.253.178 |
-| **Domain** | ауроспейс.рф |
-| **SSL** | HTTPS via Let's Encrypt |
-| **Stack** | Docker Compose (Rails + Sidekiq + PostgreSQL + Redis + Nginx) |
+| **Site** | https://ауроспейс.рф |
+| **Admin** | https://ауроспейс.рф/a/ |
+| **API Docs** | https://ауроспейс.рф/api-docs |
+| **Server** | 168.222.253.178 (Ubuntu 24.04) |
+| **SSL** | Let's Encrypt (auto-renew) |
+| **Stack** | Rails 7.2 + Puma + Sidekiq + PostgreSQL 16 + Redis + Nginx |
+| **YooKassa** | Test mode (Shop 1325535) |
 
 ---
 

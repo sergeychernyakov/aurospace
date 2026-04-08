@@ -47,15 +47,7 @@ SimpleCov.start 'rails' do
   track_files '{app,lib}/**/*.rb'
 
   # === Output ===
-  if ENV['CI']
-    require 'simplecov-json'
-    formatter SimpleCov::Formatter::MultiFormatter.new([
-      SimpleCov::Formatter::HTMLFormatter,
-      SimpleCov::Formatter::JSONFormatter,
-    ])
-  else
-    formatter SimpleCov::Formatter::HTMLFormatter
-  end
+  formatter SimpleCov::Formatter::HTMLFormatter
 
   # Refuse to merge results older than 10 minutes
   merge_timeout 600

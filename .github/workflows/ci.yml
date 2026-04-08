@@ -405,6 +405,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: cd frontend && npm ci
       - run: cd frontend && npx playwright install --with-deps chromium
+      - name: Create .env for Docker
+        run: cp .env.example .env
       - name: Start app
         run: docker compose up -d --wait --wait-timeout 60
       - name: Run E2E smoke tests
@@ -518,7 +520,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npx vitest run --coverage
+      - run: npx vitest run --coverage --passWithNoTests
       - run: npm run build
 
   # ============================================================

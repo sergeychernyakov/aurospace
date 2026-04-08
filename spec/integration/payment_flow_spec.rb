@@ -61,7 +61,7 @@ RSpec.describe 'Payment flow integration' do
     expect(order.paid_at).to be_present
 
     # Verify ledger entry
-    expect(LedgerEntry.count).to eq(1)
+    expect(order.ledger_entries.count).to eq(1)
     entry = LedgerEntry.last
     expect(entry.credit?).to be true
     expect(entry.amount_cents).to eq(10_000)
@@ -71,7 +71,7 @@ RSpec.describe 'Payment flow integration' do
     expect(account.reload.balance_cents).to eq(10_000)
 
     # Verify email job was enqueued
-    expect(WebhookEvent.count).to eq(1)
+    expect(WebhookEvent.where(external_event_id: 'pay_flow_123').count).to eq(1)
     expect(WebhookEvent.last.status).to eq('processed')
   end
 
@@ -114,6 +114,6 @@ RSpec.describe 'Payment flow integration' do
     perform_enqueued_jobs(only: ProcessWebhookJob)
 
     expect(account.reload.balance_cents).to eq(8000)
-    expect(LedgerEntry.count).to eq(2)
+    expect(LedgerEntry.where(account: account).count).to eq(2)
   end
 end

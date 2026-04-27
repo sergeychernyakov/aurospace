@@ -542,3 +542,7 @@ Documented in [`docs/adr/`](docs/adr/):
 ---
 
 *AUROSPACE Orders Demo --- production-grade showcase demonstrating senior-level engineering approach to financial domain.*
+
+---
+
+**Автор:** Telegram [@imwriter_support](https://t.me/imwriter_support)
